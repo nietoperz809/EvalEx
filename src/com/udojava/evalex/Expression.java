@@ -362,6 +362,7 @@ import java.util.TreeMap;
  * 
  * @author Udo Klimaschewski (http://about.me/udo.klimaschewski)
  */
+@SuppressWarnings("Since15")
 public class Expression {
 
 	/**
@@ -461,7 +462,8 @@ public class Expression {
 		BigDecimal eval();
 	}
 
-	public abstract class LazyFunction {
+	@SuppressWarnings("Since15")
+    public abstract class LazyFunction {
 		/**
 		 * Name of this function.
 		 */
@@ -625,7 +627,7 @@ public class Expression {
 			this.input = input.trim();
 		}
 
-		@Override
+		//@Override
 		public boolean hasNext() {
 			return (pos < input.length());
 		}
@@ -643,7 +645,7 @@ public class Expression {
 			}
 		}
 
-		@Override
+        //@Override
 		public String next() {
 			StringBuilder token = new StringBuilder();
 			if (pos >= input.length()) {
@@ -702,7 +704,7 @@ public class Expression {
 			return previousToken = token.toString();
 		}
 
-		@Override
+		//@Override
 		public void remove() {
 			throw new ExpressionException("remove() not supported");
 		}
@@ -847,10 +849,12 @@ public class Expression {
 
 		addOperator(new Operator("=", 7, false) {
 			@Override
-			public BigDecimal eval(BigDecimal v1, BigDecimal v2) {
+			public BigDecimal eval(BigDecimal v1, BigDecimal v2)
+            {
 				return v1.compareTo(v2) == 0 ? BigDecimal.ONE : BigDecimal.ZERO;
 			}
 		});
+
 		addOperator(new Operator("==", 7, false) {
 			@Override
 			public BigDecimal eval(BigDecimal v1, BigDecimal v2) {
@@ -870,6 +874,76 @@ public class Expression {
 				return operators.get("!=").eval(v1, v2);
 			}
 		});
+        addOperator(new Operator("or", 7, false)
+        {
+            @Override
+            public BigDecimal eval(BigDecimal v1, BigDecimal v2)
+            {
+                return new BigDecimal(v1.longValue() | v2.longValue());
+            }
+        });
+        addOperator(new Operator("and", 7, false)
+        {
+            @Override
+            public BigDecimal eval(BigDecimal v1, BigDecimal v2)
+            {
+                return new BigDecimal(v1.longValue() & v2.longValue());
+            }
+        });
+        addOperator(new Operator("xor", 7, false)
+        {
+            @Override
+            public BigDecimal eval(BigDecimal v1, BigDecimal v2)
+            {
+                return new BigDecimal(v1.longValue() ^ v2.longValue());
+            }
+        });
+
+        addOperator(new Operator("!", 50, true)
+        {
+            BigDecimal fac(BigDecimal n, BigDecimal acc)
+            {
+                if (n.equals(BigDecimal.ONE))
+                {
+                    return acc;
+                }
+                BigDecimal lessOne = n.subtract(BigDecimal.ONE);
+                return fac(lessOne, acc.multiply(lessOne, mc));
+            }
+
+            @Override
+            public BigDecimal eval (BigDecimal v1, BigDecimal v2)
+            {
+                return fac (v1, v1);
+            }
+        });
+
+        addOperator(new Operator("~", 8, false)
+        {
+            @Override
+            public BigDecimal eval (BigDecimal v1, BigDecimal v2)
+            {
+                return new BigDecimal (~v2.longValue());
+            }
+        });
+
+        addOperator(new Operator("shl", 8, false)
+        {
+            @Override
+            public BigDecimal eval (BigDecimal v1, BigDecimal v2)
+            {
+                return new BigDecimal (v1.longValue()<<v2.longValue());
+            }
+        });
+
+        addOperator(new Operator("shr", 8, false)
+        {
+            @Override
+            public BigDecimal eval (BigDecimal v1, BigDecimal v2)
+            {
+                return new BigDecimal (v1.longValue()>>>v2.longValue());
+            }
+        });
 
 		addFunction(new Function("NOT", 1) {
 			@Override
@@ -1096,11 +1170,20 @@ public class Expression {
 	 *            The string.
 	 * @return <code>true</code>, if the input string is a number.
 	 */
-	private boolean isNumber(String st) {
-		if (st.charAt(0) == minusSign && st.length() == 1) return false;
-		if (st.charAt(0) == '+' && st.length() == 1) return false;
-		if (st.charAt(0) == 'e' ||  st.charAt(0) == 'E') return false;
-		for (char ch : st.toCharArray()) {
+	private boolean isNumber(String st)
+    {
+		if (st.startsWith("x") && !st.equals("xor") ||
+                st.startsWith("b") ||
+                st.startsWith("o") && !st.equals("or"))
+		    return true;
+        if (st.charAt(0) == minusSign && st.length() == 1)
+		    return false;
+		if (st.charAt(0) == '+' && st.length() == 1)
+		    return false;
+		if (st.charAt(0) == 'e' ||  st.charAt(0) == 'E')
+		    return false;
+		for (char ch : st.toCharArray())
+		{
 			if (!Character.isDigit(ch) && ch != minusSign
 					&& ch != decimalSeparator
                                         && ch != 'e' && ch != 'E' && ch != '+')
@@ -1128,8 +1211,24 @@ public class Expression {
 		String previousToken = null;
 		while (tokenizer.hasNext()) {
 			String token = tokenizer.next();
-			if (isNumber(token)) {
-				outputQueue.add(token);
+                if (isNumber(token))
+                {
+                    if (token.startsWith("x"))
+                    {
+                        outputQueue.add(""+Integer.parseInt(token.substring(1), 16));
+                    }
+                    else if (token.startsWith("b"))
+                    {
+                        outputQueue.add(""+Integer.parseInt(token.substring(1), 2));
+                    }
+                    else if (token.startsWith("o"))
+                    {
+                        outputQueue.add(""+Integer.parseInt(token.substring(1), 8));
+                    }
+                    else
+                {
+                    outputQueue.add(token);
+                }
 			} else if (variables.containsKey(token)) {
 				outputQueue.add(token);
 			} else if (functions.containsKey(token.toUpperCase(Locale.ROOT))) {
@@ -1205,6 +1304,12 @@ public class Expression {
 			if ("(".equals(element) || ")".equals(element)) {
 				throw new ExpressionException("Mismatched parentheses");
 			}
+//			if (element.charAt(0)=='x')
+//            {
+//                String s = ""+Integer.parseInt(element.substring(1), 16);
+//                element = s;
+//            }
+
 			if (!operators.containsKey(element)) {
 				throw new ExpressionException("Unknown operator or function: "
 						+ element);
