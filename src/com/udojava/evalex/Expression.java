@@ -26,6 +26,8 @@
  */
 package com.udojava.evalex;
 
+import org.apache.commons.math3.special.Gamma;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -654,20 +656,11 @@ public class Expression
         addOperator(new Operator("!", 50, true,
                 "Factorial. See https://en.wikipedia.org/wiki/Factorial")
         {
-            BigDecimal fac (BigDecimal n, BigDecimal acc)
-            {
-                if (n.equals(BigDecimal.ONE))
-                {
-                    return acc;
-                }
-                BigDecimal lessOne = n.subtract(BigDecimal.ONE);
-                return fac(lessOne, acc.multiply(lessOne));
-            }
-
             @Override
             public BigDecimal eval (BigDecimal v1, BigDecimal v2)
             {
-                return fac(v1, v1);
+                double n = Gamma.gamma(v1.doubleValue());
+                return new BigDecimal(n);
             }
         });
 

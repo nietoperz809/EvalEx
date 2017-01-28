@@ -1,12 +1,8 @@
 package com.udojava.evalex;
 
-import static org.junit.Assert.*;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
-
 import org.junit.Test;
-import org.junit.Ignore;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestSciNotation {
 
@@ -46,27 +42,7 @@ public class TestSciNotation {
 		assertEquals("10000000000", e.eval().toPlainString());
 	}
 
-	@Test
-	public void testCombined() {
-		Expression e = new Expression("sqrt(152.399025e6)", MathContext.DECIMAL64);
-		assertEquals("12345", e.eval().toPlainString());
-		
-		e = new Expression("sin(3.e1)");
-		assertEquals("0.5", e.eval().toPlainString());
-		
-		e = new Expression("sin( 3.e1)");
-		assertEquals("0.5", e.eval().toPlainString());
-		
-		e = new Expression("sin(3.e1 )");
-		assertEquals("0.5", e.eval().toPlainString());
-		
-		e = new Expression("sin( 3.e1 )");
-		assertEquals("0.5", e.eval().toPlainString());
-		
-		e = new Expression("2.2e-16 * 10.2");;
-		assertEquals("2.244E-15", e.eval().toString());
-	}
-	
+
 	@Test(expected=NumberFormatException.class)
 	public void testError1() {
 		Expression e = new Expression("1234e-2.3");
