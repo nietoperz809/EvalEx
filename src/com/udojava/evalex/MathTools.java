@@ -14,11 +14,13 @@ public class MathTools
     public static BigInteger getFactorialUsingGammaApproximation (
             int n, int precision)
     {
+        if (n == 0 || n == 1)
+            return BigInteger.ONE;
         return pow(
                 Math.E,
                 factorialLog(n),
                 precision)
-                .toBigInteger();
+                .toBigInteger().add (BigInteger.ONE);
     }
 
     public static BigDecimal pow (double base, double exp, int precision)

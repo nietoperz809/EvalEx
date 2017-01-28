@@ -26,8 +26,6 @@
  */
 package com.udojava.evalex;
 
-import org.apache.commons.math3.special.Gamma;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -659,8 +657,10 @@ public class Expression
             @Override
             public BigDecimal eval (BigDecimal v1, BigDecimal v2)
             {
-                double n = Gamma.gamma(v1.doubleValue());
-                return new BigDecimal(n);
+                BigInteger fact = MathTools.getFactorialUsingGammaApproximation(v1.intValue(), 100);
+                //ArithmeticUtils.
+                //double n = Gamma.gamma(v1.doubleValue());
+                return new BigDecimal(fact);
             }
         });
 
