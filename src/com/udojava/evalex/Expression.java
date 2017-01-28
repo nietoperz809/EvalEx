@@ -871,6 +871,33 @@ public class Expression
                 return max;
             }
         });
+///////////////////////////////////////////////////////
+        addFunction(new Function("GCD", 2)
+        {
+            private BigDecimal GCD(BigDecimal a, BigDecimal b)
+            {
+                if (b.compareTo(BigDecimal.ZERO)==0)
+                    return a;
+                return GCD(b,a.remainder(b));
+            }
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                return GCD(parameters.get(0), parameters.get(1));
+            }
+        });
+        addFunction(new Function("LCM", 2)
+        {
+            private Function gcd = (Function)functions.get("GCD");
+
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                return parameters.get(0).multiply(parameters.get(1))
+                        .divide(gcd.eval(parameters));
+            }
+        });
+///////////////////////////////////////////////
         addFunction(new Function("MIN", -1)
         {
             @Override
