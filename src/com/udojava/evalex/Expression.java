@@ -353,7 +353,7 @@ import java.util.*;
  *
  * @author Udo Klimaschewski (http://about.me/udo.klimaschewski)
  */
-@SuppressWarnings("Since15")
+@SuppressWarnings({"Since15", "BigDecimalMethodWithoutRoundingCalled"})
 public class Expression
 {
 
