@@ -33,323 +33,6 @@ import java.util.*;
 
 /**
  * <h1>EvalEx - Java Expression Evaluator</h1>
- * <p>
- * <h2>Introduction</h2> EvalEx is a handy expression evaluator for Java, that
- * allows to evaluate simple mathematical and boolean expressions. <br>
- * Key Features:
- * <ul>
- * <li>Uses BigDecimal for calculation and result</li>
- * <li>Single class implementation, very compact</li>
- * <li>No dependencies to external libraries</li>
- * <li>Precision and rounding mode can be set</li>
- * <li>Supports variables</li>
- * <li>Standard boolean and mathematical operators</li>
- * <li>Standard basic mathematical and boolean functions</li>
- * <li>Custom functions and operators can be added at runtime</li>
- * </ul>
- * <br>
- * <h2>Examples</h2>
- * <p>
- * <pre>
- *  BigDecimal result = null;
- *
- *  Expression expression = new Expression("1+1/3");
- *  result = expression.eval():
- *  expression.setPrecision(2);
- *  result = expression.eval():
- *
- *  result = new Expression("(3.4 + -4.1)/2").eval();
- *
- *  result = new Expression("SQRT(a^2 + b^2").with("a","2.4").and("b","9.253").eval();
- *
- *  BigDecimal a = new BigDecimal("2.4");
- *  BigDecimal b = new BigDecimal("9.235");
- *  result = new Expression("SQRT(a^2 + b^2").with("a",a).and("b",b).eval();
- *
- *  result = new Expression("2.4/PI").setPrecision(128).setRoundingMode(RoundingMode.UP).eval();
- *
- *  result = new Expression("random() > 0.5").eval();
- *
- *  result = new Expression("not(x<7 || sqrt(max(x,9)) <= 3))").with("x","22.9").eval();
- * </pre>
- * <p>
- * <br>
- * <h2>Supported Operators</h2>
- * <table>
- * <tr>
- * <th>Mathematical Operators</th>
- * </tr>
- * <tr>
- * <th>Operator</th>
- * <th>Description</th>
- * </tr>
- * <tr>
- * <td>+</td>
- * <td>Additive operator</td>
- * </tr>
- * <tr>
- * <td>-</td>
- * <td>Subtraction operator</td>
- * </tr>
- * <tr>
- * <td>*</td>
- * <td>Multiplication operator</td>
- * </tr>
- * <tr>
- * <td>/</td>
- * <td>Division operator</td>
- * </tr>
- * <tr>
- * <td>%</td>
- * <td>Remainder operator (Modulo)</td>
- * </tr>
- * <tr>
- * <td>^</td>
- * <td>Power operator</td>
- * </tr>
- * </table>
- * <br>
- * <table>
- * <tr>
- * <th>Boolean Operators<sup>*</sup></th>
- * </tr>
- * <tr>
- * <th>Operator</th>
- * <th>Description</th>
- * </tr>
- * <tr>
- * <td>=</td>
- * <td>Equals</td>
- * </tr>
- * <tr>
- * <td>==</td>
- * <td>Equals</td>
- * </tr>
- * <tr>
- * <td>!=</td>
- * <td>Not equals</td>
- * </tr>
- * <tr>
- * <td>&lt;&gt;</td>
- * <td>Not equals</td>
- * </tr>
- * <tr>
- * <td>&lt;</td>
- * <td>Less than</td>
- * </tr>
- * <tr>
- * <td>&lt;=</td>
- * <td>Less than or equal to</td>
- * </tr>
- * <tr>
- * <td>&gt;</td>
- * <td>Greater than</td>
- * </tr>
- * <tr>
- * <td>&gt;=</td>
- * <td>Greater than or equal to</td>
- * </tr>
- * <tr>
- * <td>&amp;&amp;</td>
- * <td>Boolean and</td>
- * </tr>
- * <tr>
- * <td>||</td>
- * <td>Boolean or</td>
- * </tr>
- * </table>
- * *Boolean operators result always in a BigDecimal value of 1 or 0 (zero). Any
- * non-zero value is treated as a _true_ value. Boolean _not_ is implemented by
- * a function. <br>
- * <h2>Supported Functions</h2>
- * <table>
- * <tr>
- * <th>Function<sup>*</sup></th>
- * <th>Description</th>
- * </tr>
- * <tr>
- * <td>NOT(<i>expression</i>)</td>
- * <td>Boolean negation, 1 (means true) if the expression is not zero</td>
- * </tr>
- * <tr>
- * <td>IF(<i>condition</i>,<i>value_if_true</i>,<i>value_if_false</i>)</td>
- * <td>Returns one value if the condition evaluates to true or the other if it
- * evaluates to false</td>
- * </tr>
- * <tr>
- * <td>RANDOM()</td>
- * <td>Produces a random number between 0 and 1</td>
- * </tr>
- * <tr>
- * <td>MIN(<i>e1</i>,<i>e2</i>, <i>...</i>)</td>
- * <td>Returns the smallest of the given expressions</td>
- * </tr>
- * <tr>
- * <td>MAX(<i>e1</i>,<i>e2</i>, <i>...</i>)</td>
- * <td>Returns the biggest of the given expressions</td>
- * </tr>
- * <tr>
- * <td>ABS(<i>expression</i>)</td>
- * <td>Returns the absolute (non-negative) value of the expression</td>
- * </tr>
- * <tr>
- * <td>ROUND(<i>expression</i>,precision)</td>
- * <td>Rounds a value to a certain number of digits, uses the current rounding
- * mode</td>
- * </tr>
- * <tr>
- * <td>FLOOR(<i>expression</i>)</td>
- * <td>Rounds the value down to the nearest integer</td>
- * </tr>
- * <tr>
- * <td>CEILING(<i>expression</i>)</td>
- * <td>Rounds the value up to the nearest integer</td>
- * </tr>
- * <tr>
- * <td>LOG(<i>expression</i>)</td>
- * <td>Returns the natural logarithm (base e) of an expression</td>
- * </tr>
- * <tr>
- * <td>LOG10(<i>expression</i>)</td>
- * <td>Returns the common logarithm (base 10) of an expression</td>
- * </tr>
- * <tr>
- * <td>SQRT(<i>expression</i>)</td>
- * <td>Returns the square root of an expression</td>
- * </tr>
- * <tr>
- * <td>SIN(<i>expression</i>)</td>
- * <td>Returns the trigonometric sine of an angle (in degrees)</td>
- * </tr>
- * <tr>
- * <td>COS(<i>expression</i>)</td>
- * <td>Returns the trigonometric cosine of an angle (in degrees)</td>
- * </tr>
- * <tr>
- * <td>TAN(<i>expression</i>)</td>
- * <td>Returns the trigonometric tangens of an angle (in degrees)</td>
- * </tr>
- * <tr>
- * <td>ASIN(<i>expression</i>)</td>
- * <td>Returns the angle of asin (in degrees)</td>
- * </tr>
- * <tr>
- * <td>ACOS(<i>expression</i>)</td>
- * <td>Returns the angle of acos (in degrees)</td>
- * </tr>
- * <tr>
- * <td>ATAN(<i>expression</i>)</td>
- * <td>Returns the angle of atan (in degrees)</td>
- * </tr>
- * <tr>
- * <td>SINH(<i>expression</i>)</td>
- * <td>Returns the hyperbolic sine of a value</td>
- * </tr>
- * <tr>
- * <td>COSH(<i>expression</i>)</td>
- * <td>Returns the hyperbolic cosine of a value</td>
- * </tr>
- * <tr>
- * <td>TANH(<i>expression</i>)</td>
- * <td>Returns the hyperbolic tangens of a value</td>
- * </tr>
- * <tr>
- * <td>RAD(<i>expression</i>)</td>
- * <td>Converts an angle measured in degrees to an approximately equivalent
- * angle measured in radians</td>
- * </tr>
- * <tr>
- * <td>DEG(<i>expression</i>)</td>
- * <td>Converts an angle measured in radians to an approximately equivalent
- * angle measured in degrees</td>
- * </tr>
- * </table>
- * *Functions names are case insensitive. <br>
- * <h2>Supported Constants</h2>
- * <table>
- * <tr>
- * <th>Constant</th>
- * <th>Description</th>
- * </tr>
- * <tr>
- * <td>e</td>
- * <td>The value of <i>e</i>, exact to 70 digits</td>
- * </tr>
- * <tr>
- * <td>PI</td>
- * <td>The value of <i>PI</i>, exact to 100 digits</td>
- * </tr>
- * <tr>
- * <td>TRUE</td>
- * <td>The value one</td>
- * </tr>
- * <tr>
- * <td>FALSE</td>
- * <td>The value zero</td>
- * </tr>
- * </table>
- * <p>
- * <h2>Add Custom Operators</h2>
- * <p>
- * Custom operators can be added easily, simply create an instance of
- * `Expression.Operator` and add it to the expression. Parameters are the
- * operator string, its precedence and if it is left associative. The operators
- * `eval()` method will be called with the BigDecimal values of the operands.
- * All existing operators can also be overridden. <br>
- * For example, add an operator `x >> n`, that moves the decimal point of _x_
- * _n_ digits to the right:
- * <p>
- * <pre>
- * Expression e = new Expression("2.1234 >> 2");
- *
- * e.addOperator(e.new Operator(">>", 30, true) {
- *     {@literal @}Override
- *     public BigDecimal eval(BigDecimal v1, BigDecimal v2) {
- *         return v1.movePointRight(v2.toBigInteger().intValue());
- *     }
- * });
- *
- * e.eval(); // returns 212.34
- * </pre>
- * <p>
- * <br>
- * <h2>Add Custom Functions</h2>
- * <p>
- * Adding custom functions is as easy as adding custom operators. Create an
- * instance of `Expression.Function`and add it to the expression. Parameters are
- * the function name and the count of required parameters. The functions
- * `eval()` method will be called with a list of the BigDecimal parameters. All
- * existing functions can also be overridden. <br>
- * A <code>-1</code> as the number of parameters denotes a variable number of arguments.<br>
- * For example, add a function `average(a,b,c)`, that will calculate the average
- * value of a, b and c: <br>
- * <p>
- * <pre>
- * Expression e = new Expression("2 * average(12,4,8)");
- *
- * e.addFunction(e.new Function("average", 3) {
- *     {@literal @}Override
- *     public BigDecimal eval(List<BigDecimal> parameters) {
- *         BigDecimal sum = parameters.get(0).add(parameters.get(1)).add(parameters.get(2));
- *         return sum.divide(new BigDecimal(3));
- *     }
- * });
- *
- * e.eval(); // returns 16
- * </pre>
- * <p>
- * The software is licensed under the MIT Open Source license (see LICENSE
- * file). <br>
- * <ul>
- * <li>The *power of* operator (^) implementation was copied from [Stack
- * Overflow
- * ](http://stackoverflow.com/questions/3579779/how-to-do-a-fractional-power
- * -on-bigdecimal-in-java) Thanks to Gene Marin</li>
- * <li>The SQRT() function implementation was taken from the book [The Java
- * Programmers Guide To numerical
- * Computing](http://www.amazon.de/Java-Number-Cruncher
- * -Programmers-Numerical/dp/0130460419) (Ronald Mak, 2002)</li>
- * </ul>
  *
  * @author Udo Klimaschewski (http://about.me/udo.klimaschewski)
  */
@@ -410,6 +93,11 @@ public class Expression
      */
     private final Map<String, LazyFunction> functions = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
+    public Map<String, LazyFunction> getFuncs()
+    {
+        return functions;
+    }
+
     /**
      * All defined variables with name and value.
      */
@@ -433,28 +121,6 @@ public class Expression
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Creates a new expression instance from an expression string with a given
-     *
-     * @param expression The expression. E.g. <code>"2.4*sin(3)/(2-4)"</code> or
-     *                   <code>"sin(y)>0 & max(z, 3)>3"</code>
-     */
-//    public Expression (String expression)
-//    {
-//        this(expression, MathContext.DECIMAL32);
-//    }
 
     /**
      * Creates a new expression instance from an expression string with a given
@@ -694,7 +360,8 @@ public class Expression
             }
         });
 
-        addFunction(new Function("NOT", 1)
+        addFunction(new Function("NOT", 1,
+                "evaluates to 0 if argument != 0")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -714,76 +381,85 @@ public class Expression
             }
         });
 
-        addFunction(new Function("RND", 0)
+        addFunction(new Function("RND", 2,
+                "Give random number in the range between first and second argument")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                double d = Math.random();
-                return new BigDecimal(d);
+                double low = parameters.get(0).doubleValue();
+                double high = parameters.get(1).doubleValue();
+                return new BigDecimal(low+Math.random()*(high-low));
             }
         });
-        addFunction(new Function("SIN", 1)
+        addFunction(new Function("SIN", 1,
+                "Sine function")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                double d = Math.sin(Math.toRadians(parameters.get(0)
-                        .doubleValue()));
+                double d = Math.sin(parameters.get(0)
+                        .doubleValue());
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("COS", 1)
+        addFunction(new Function("COS", 1,
+                "Cosine function")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                double d = Math.cos(Math.toRadians(parameters.get(0)
-                        .doubleValue()));
+                double d = Math.cos(parameters.get(0)
+                        .doubleValue());
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("TAN", 1)
+        addFunction(new Function("TAN", 1,
+                "Tangent")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                double d = Math.tan(Math.toRadians(parameters.get(0)
-                        .doubleValue()));
+                double d = Math.tan(parameters.get(0)
+                        .doubleValue());
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("ASIN", 1)
+        addFunction(new Function("ASIN", 1,
+                "Reverse Sine")
         { // added by av
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                double d = Math.toDegrees(Math.asin(parameters.get(0)
-                        .doubleValue()));
+                double d = Math.asin(parameters.get(0)
+                        .doubleValue());
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("ACOS", 1)
+        addFunction(new Function("ACOS", 1,
+                "Reverse Cosine")
         { // added by av
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                double d = Math.toDegrees(Math.acos(parameters.get(0)
-                        .doubleValue()));
+                double d = Math.acos(parameters.get(0)
+                        .doubleValue());
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("ATAN", 1)
+        addFunction(new Function("ATAN", 1,
+                "Reverse Tangent")
         { // added by av
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                double d = Math.toDegrees(Math.atan(parameters.get(0)
-                        .doubleValue()));
+                double d = Math.atan(parameters.get(0)
+                        .doubleValue());
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("SINH", 1)
+        addFunction(new Function("SINH", 1,
+                "Hyperbolic Sine")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -792,7 +468,8 @@ public class Expression
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("COSH", 1)
+        addFunction(new Function("COSH", 1,
+                "Hyperbolic Cosine")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -801,7 +478,8 @@ public class Expression
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("TANH", 1)
+        addFunction(new Function("TANH", 1,
+                "Hyperbolic Tangent")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -810,7 +488,8 @@ public class Expression
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("RAD", 1)
+        addFunction(new Function("RAD", 1,
+                "Transform degree to radian")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -819,7 +498,8 @@ public class Expression
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("DEG", 1)
+        addFunction(new Function("DEG", 1,
+                "Transform radian to degree")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -828,7 +508,8 @@ public class Expression
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("MAX", -1)
+        addFunction(new Function("MAX", -1,
+                "Find the biggest value in a list")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -849,7 +530,8 @@ public class Expression
             }
         });
 ///////////////////////////////////////////////////////
-        addFunction(new Function("GCD", 2)
+        addFunction(new Function("GCD", 2,
+                "Find greatest common divisor of 2 values")
         {
             private BigDecimal GCD(BigDecimal a, BigDecimal b)
             {
@@ -863,7 +545,8 @@ public class Expression
                 return GCD(parameters.get(0), parameters.get(1));
             }
         });
-        addFunction(new Function("LCM", 2)
+        addFunction(new Function("LCM", 2,
+                "Find least common multiple of 2 values")
         {
             private final Function gcd = (Function)functions.get("GCD");
 
@@ -875,7 +558,8 @@ public class Expression
             }
         });
 ///////////////////////////////////////////////
-        addFunction(new Function("MIN", -1)
+        addFunction(new Function("MIN", -1,
+                "Find the smallest in a list of values")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -895,7 +579,8 @@ public class Expression
                 return min;
             }
         });
-        addFunction(new Function("ABS", 1)
+        addFunction(new Function("ABS", 1,
+                "Get absolute value of a number")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -903,7 +588,8 @@ public class Expression
                 return parameters.get(0).abs();
             }
         });
-        addFunction(new Function("LOG", 1)
+        addFunction(new Function("LN", 1,
+                "Logarithm base e of the argument")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -912,7 +598,8 @@ public class Expression
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("LOG10", 1)
+        addFunction(new Function("LOG", 1,
+                "Logarithm base 10 of the argument")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -921,17 +608,8 @@ public class Expression
                 return new BigDecimal(d);
             }
         });
-        addFunction(new Function("ROUND", 2)
-        {
-            @Override
-            public BigDecimal eval (List<BigDecimal> parameters)
-            {
-                BigDecimal toRound = parameters.get(0);
-                int precision = parameters.get(1).intValue();
-                return toRound.setScale(100);
-            }
-        });
-        addFunction(new Function("FLOOR", 1)
+        addFunction(new Function("FLOOR", 1,
+                "Rounds down to nearest Integer")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -940,7 +618,8 @@ public class Expression
                 return toRound.setScale(100, RoundingMode.FLOOR);
             }
         });
-        addFunction(new Function("CEILING", 1)
+        addFunction(new Function("CEILING", 1,
+                "Rounds up to nearest Integer")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -949,7 +628,8 @@ public class Expression
                 return toRound.setScale(100, RoundingMode.CEILING);
             }
         });
-        addFunction(new Function("SQRT", 1)
+        addFunction(new Function("SQRT", 1,
+                "Square root")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -963,7 +643,6 @@ public class Expression
         variables.put("PI", PI);
         variables.put("TRUE", BigDecimal.ONE);
         variables.put("FALSE", BigDecimal.ZERO);
-
     }
 
     /**
@@ -1291,7 +970,7 @@ public class Expression
      */
     public Operator addOperator (Operator operator)
     {
-        return operators.put(operator.getOper(), operator);
+        return operators.put(operator.getName(), operator);
     }
 
     /**
@@ -1631,13 +1310,26 @@ private LazyFunction addLazyFunction (LazyFunction function)
         }
     }
 
-    @SuppressWarnings("Since15")
-    public abstract class LazyFunction
+    class Mathobject
     {
-        /**
-         * Name of this function.
-         */
-        private final String name;
+        String name = null;
+        String desc = null;
+
+        public String getDescription()
+        {
+            return desc;
+        }
+
+        public String getName ()
+        {
+            return name;
+        }
+
+    }
+
+    @SuppressWarnings("Since15")
+    public abstract class LazyFunction extends Mathobject
+    {
         /**
          * Number of parameters expected for this function.
          * <code>-1</code> denotes a variable number of parameters.
@@ -1657,10 +1349,6 @@ private LazyFunction addLazyFunction (LazyFunction function)
             this.numParams = numParams;
         }
 
-        public String getName ()
-        {
-            return name;
-        }
 
         public int getNumParams ()
         {
@@ -1682,6 +1370,11 @@ private LazyFunction addLazyFunction (LazyFunction function)
      */
     public abstract class Function extends LazyFunction
     {
+        public Function (String name, int numParams, String desc)
+        {
+            super(name, numParams);
+            this.desc = desc;
+        }
 
         public Function (String name, int numParams)
         {
@@ -1713,22 +1406,8 @@ private LazyFunction addLazyFunction (LazyFunction function)
      * Abstract definition of a supported operator. An operator is defined by
      * its name (pattern), precedence and if it is left- or right associative.
      */
-    public abstract class Operator
+    public abstract class Operator extends Mathobject
     {
-        /**
-         * OP description
-         * useful for help command
-         */
-        private final String desc;
-
-        public String getDescription()
-        {
-            return desc;
-        }
-        /**
-         * This operators name (pattern).
-         */
-        private final String oper;
         /**
          * Operators precedence.
          */
@@ -1741,27 +1420,22 @@ private LazyFunction addLazyFunction (LazyFunction function)
         /**
          * Creates a new operator.
          *
-         * @param oper       The operator name (pattern).
+         * @param name       The operator name (pattern).
          * @param precedence The operators precedence.
          * @param leftAssoc  <code>true</code> if the operator is left associative,
          *                   else <code>false</code>.
          */
-        public Operator (String oper, int precedence, boolean leftAssoc)
+        public Operator (String name, int precedence, boolean leftAssoc)
         {
-            this (oper, precedence, leftAssoc, null);
+            this (name, precedence, leftAssoc, null);
         }
 
-        public Operator (String oper, int precedence, boolean leftAssoc, String desc)
+        public Operator (String name, int precedence, boolean leftAssoc, String desc)
         {
-            this.oper = oper;
+            this.name = name;
             this.precedence = precedence;
             this.leftAssoc = leftAssoc;
             this.desc = desc;
-        }
-
-        public String getOper ()
-        {
-            return oper;
         }
 
         public int getPrecedence ()
