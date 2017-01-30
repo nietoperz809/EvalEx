@@ -32,6 +32,9 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
 
+import static org.apache.commons.math3.primes.Primes.nextPrime;
+import static org.apache.commons.math3.stat.StatUtils.variance;
+
 /**
  * <h1>EvalEx - Java Expression Evaluator</h1>
  *
@@ -631,6 +634,35 @@ public class Expression
                 }
                 res = res.abs();
                 return new BigDecimal(num).divide(res, MathContext.DECIMAL128);
+            }
+        });
+
+        addFunction(new Function("VAR", -1,
+                "Variance of a set of values")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                if (parameters.size() == 0)
+                {
+                    throw new ExpressionException("MEAN requires at least one parameter");
+                }
+                double[] arr = new double[parameters.size()];
+                for (int s=0; s<parameters.size(); s++)
+                {
+                    arr[s] = parameters.get(s).doubleValue();
+                }
+                return new BigDecimal(variance(arr));
+            }
+        });
+
+        addFunction(new Function("NPR", 1,
+                "Next prime number greater or euqal the argument")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                return new BigDecimal(nextPrime(parameters.get(0).intValue()));
             }
         });
 
