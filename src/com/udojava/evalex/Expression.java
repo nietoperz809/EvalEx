@@ -28,6 +28,7 @@ package com.udojava.evalex;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.*;
 
@@ -166,7 +167,7 @@ public class Expression
             @Override
             public BigDecimal eval (BigDecimal v1, BigDecimal v2)
             {
-                return v1.divide(v2);
+                return v1.divide(v2, MathContext.DECIMAL128);
             }
         });
         addOperator(new Operator("%", 30, true,
@@ -200,7 +201,7 @@ public class Expression
                 BigDecimal result = intPow.multiply(doublePow);
                 if (signOf2 == -1)
                 {
-                    result = BigDecimal.ONE.divide(result);
+                    result = BigDecimal.ONE.divide(result, MathContext.DECIMAL128);
                 }
                 return result;
             }
@@ -371,15 +372,28 @@ public class Expression
             }
         });
 
-        addLazyFunction(new LazyFunction("IF", 3)
-        {
-            @Override
-            public LazyNumber lazyEval (List<LazyNumber> lazyParams)
-            {
-                boolean isTrue = !lazyParams.get(0).eval().equals(BigDecimal.ZERO);
-                return isTrue ? lazyParams.get(1) : lazyParams.get(2);
-            }
-        });
+//        addFunction(new Function("SWP4", 1,
+//                "Interpret value as byte and swap upper and lower nibble")
+//        {
+//            @Override
+//            public BigDecimal eval (List<BigDecimal> parameters)
+//            {
+//                int v = parameters.get(0).intValue();
+//                v = (v>>4 | v<<4)&0xff;
+//                return new BigDecimal(v);
+//            }
+//        });
+//        addFunction(new Function("SWP8", 1,
+//                "Interpret value as 16 bit and swap bytes")
+//        {
+//            @Override
+//            public BigDecimal eval (List<BigDecimal> parameters)
+//            {
+//                int v = parameters.get(0).intValue();
+//                v = (v>>8 | v<<8)&0xffff;
+//                return new BigDecimal(v);
+//            }
+//        });
 
         addFunction(new Function("RND", 2,
                 "Give random number in the range between first and second argument")
@@ -554,10 +568,74 @@ public class Expression
             public BigDecimal eval (List<BigDecimal> parameters)
             {
                 return parameters.get(0).multiply(parameters.get(1))
-                        .divide(gcd.eval(parameters));
+                        .divide(gcd.eval(parameters), MathContext.DECIMAL128);
             }
         });
-///////////////////////////////////////////////
+        addFunction(new Function("AMEAN", -1,
+                "Arithmetic mean of a set of values")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                if (parameters.size() == 0)
+                {
+                    throw new ExpressionException("MEAN requires at least one parameter");
+                }
+                BigDecimal res = BigDecimal.ZERO;
+                int num = 0;
+                for (BigDecimal parameter : parameters)
+                {
+                    res = res.add(parameter);
+                    num++;
+                }
+                return res.divide(new BigDecimal(num), MathContext.DECIMAL128);
+            }
+        });
+        addFunction(new Function("GMEAN", -1,
+                "Geometric mean of a set of values")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                if (parameters.size() == 0)
+                {
+                    throw new ExpressionException("MEAN requires at least one parameter");
+                }
+                BigDecimal res = BigDecimal.ONE;
+                int num = 0;
+                for (BigDecimal parameter : parameters)
+                {
+                    res = res.multiply(parameter);
+                    num++;
+                }
+                res = res.abs();
+                return MathTools.nthRoot(num, res, new BigDecimal (0.000000001));
+            }
+        });
+        addFunction(new Function("HMEAN", -1,
+                "Harmonic mean of a set of values")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                if (parameters.size() == 0)
+                {
+                    throw new ExpressionException("MEAN requires at least one parameter");
+                }
+                BigDecimal res = BigDecimal.ZERO;
+                int num = 0;
+                for (BigDecimal parameter : parameters)
+                {
+                    res = res.add (BigDecimal.ONE.divide(parameter,MathContext.DECIMAL128));
+                    num++;
+                }
+                res = res.abs();
+                return new BigDecimal(num).divide(res, MathContext.DECIMAL128);
+            }
+        });
+
+        ///////////////////////////////////////////////
+
         addFunction(new Function("MIN", -1,
                 "Find the smallest in a list of values")
         {
