@@ -26,6 +26,8 @@
  */
 package com.udojava.evalex;
 
+import org.apache.commons.math3.random.MersenneTwister;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -375,29 +377,6 @@ public class Expression
             }
         });
 
-//        addFunction(new Function("SWP4", 1,
-//                "Interpret value as byte and swap upper and lower nibble")
-//        {
-//            @Override
-//            public BigDecimal eval (List<BigDecimal> parameters)
-//            {
-//                int v = parameters.get(0).intValue();
-//                v = (v>>4 | v<<4)&0xff;
-//                return new BigDecimal(v);
-//            }
-//        });
-//        addFunction(new Function("SWP8", 1,
-//                "Interpret value as 16 bit and swap bytes")
-//        {
-//            @Override
-//            public BigDecimal eval (List<BigDecimal> parameters)
-//            {
-//                int v = parameters.get(0).intValue();
-//                v = (v>>8 | v<<8)&0xffff;
-//                return new BigDecimal(v);
-//            }
-//        });
-
         addFunction(new Function("RND", 2,
                 "Give random number in the range between first and second argument")
         {
@@ -409,6 +388,19 @@ public class Expression
                 return new BigDecimal(low+Math.random()*(high-low));
             }
         });
+
+        MersenneTwister mers = new MersenneTwister(System.nanoTime());
+
+        addFunction(new Function("MRS", 0,
+                "Mersenne twister random generator")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                return new BigDecimal(mers.nextDouble());
+            }
+        });
+
         addFunction(new Function("SIN", 1,
                 "Sine function")
         {
@@ -728,7 +720,7 @@ public class Expression
                 return toRound.setScale(100, RoundingMode.FLOOR);
             }
         });
-        addFunction(new Function("CEILING", 1,
+        addFunction(new Function("CEIL", 1,
                 "Rounds up to nearest Integer")
         {
             @Override
