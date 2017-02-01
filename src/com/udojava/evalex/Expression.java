@@ -57,6 +57,7 @@ public class Expression
      */
     private static final BigDecimal e = new BigDecimal(
             "2.71828182845904523536028747135266249775724709369995957496696762772407663");
+    private final LinkedList<String> history;
 
 
     /**
@@ -125,8 +126,10 @@ public class Expression
      */
     private static final LazyNumber PARAMS_START = () -> null;
 
-
-
+    public Expression (String s)
+    {
+        this (s, null);
+    }
 
     /**
      * Creates a new expression instance from an expression string with a given
@@ -135,8 +138,9 @@ public class Expression
      * @param expression         The expression. E.g. <code>"2.4*sin(3)/(2-4)"</code> or
      *                           <code>"sin(y)>0 & max(z, 3)>3"</code>
      */
-    public Expression (String expression)
+    public Expression (String expression, LinkedList<String> hist)
     {
+        this.history = hist;
         this.expression = expression;
         this.originalExpression = expression;
         addOperator(new Operator("+", 20, true,
@@ -539,6 +543,18 @@ public class Expression
             }
         });
 ///////////////////////////////////////////////////////
+        addFunction(new Function("H", 1,
+                "Evaluate history element")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                int i = parameters.get(0).intValue();
+                Expression ex = new Expression(history.get(i), history);
+                return ex.eval();
+            }
+        });
+
         addFunction(new Function("GCD", 2,
                 "Find greatest common divisor of 2 values")
         {
