@@ -27,6 +27,7 @@
 package com.udojava.evalex;
 
 import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.util.ArithmeticUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -405,6 +406,19 @@ public class Expression
             }
         });
 
+        addFunction(new Function("BIN", 2,
+                "Binomial Coefficient 'n choose k'")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                int n = parameters.get(0).intValue();
+                int k = parameters.get(1).intValue();
+                double d = ArithmeticUtils.binomialCoefficientDouble(n,k);
+                return new BigDecimal(d);
+            }
+        });
+
         addFunction(new Function("SIN", 1,
                 "Sine function")
         {
@@ -543,8 +557,17 @@ public class Expression
             }
         });
 ///////////////////////////////////////////////////////
+        addFunction(new Function("PERC", 2,
+                "Calculates how many percent is param1 of the whole (param2)")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                return parameters.get(0).divide(new BigDecimal(100)).multiply(parameters.get(1));
+            }
+        });
         addFunction(new Function("H", 1,
-                "Evaluate history element")
+                "Evaluate _history element")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
@@ -552,6 +575,16 @@ public class Expression
                 int i = parameters.get(0).intValue();
                 Expression ex = new Expression(history.get(i), history);
                 return ex.eval();
+            }
+        });
+        addFunction(new Function("MERS", 1,
+                "Calculate Mersenne Number")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                BigDecimal p = parameters.get(0); 
+                return new BigDecimal(2).pow(p.intValue()).subtract(BigDecimal.ONE);
             }
         });
 
@@ -772,7 +805,7 @@ public class Expression
     private boolean isNumber (String st)
     {
         if (st.startsWith("x") && !st.equals("xor") ||
-                st.startsWith("b") ||
+                (st.startsWith("b") && (st.charAt(1) == '0' || st.charAt(1)=='1')) ||
                 st.startsWith("o") && !st.equals("or"))
         {
             return true;
@@ -1020,9 +1053,9 @@ public class Expression
     }
 
     /**
-     * Sets the rounding mode for expression evaluation.
+     * Sets the rounding _radix for expression evaluation.
      *
-     * @param roundingMode The new rounding mode.
+     * @param roundingMode The new rounding _radix.
      * @return The expression, allows to chain methods.
      */
     public Expression setRoundingMode (RoundingMode roundingMode)
@@ -1145,19 +1178,6 @@ private LazyFunction addLazyFunction (LazyFunction function)
         return functions.put(function.getName(), function);
     }
 
-// --Commented out by Inspection START (1/28/2017 1:58 PM):
-//    /**
-//     * Sets a variable value.
-//     *
-//     * @param variable The variable to set.
-//     * @param value    The variable value.
-//     * @return The expression, allows to chain methods.
-//     */
-//    public Expression and (String variable, BigDecimal value)
-//    {
-//        return setVariable(variable, value);
-//    }
-// --Commented out by Inspection STOP (1/28/2017 1:58 PM)
 
     /**
      * Sets a variable value.
@@ -1232,15 +1252,6 @@ private LazyFunction addLazyFunction (LazyFunction function)
         return Collections.unmodifiableSet(functions.keySet());
     }
 
-// --Commented out by Inspection START (1/28/2017 1:58 PM):
-//    /**
-//     * @return The original expression string
-//     */
-//    public String getExpression ()
-//    {
-//        return expression;
-//    }    /**
-// --Commented out by Inspection STOP (1/28/2017 1:58 PM)
     /*
     * Cached access to the RPN notation of this expression, ensures only one
      * calculation of the RPN per expression instance. If no cached instance
