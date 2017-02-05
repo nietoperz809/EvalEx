@@ -27,7 +27,7 @@
 package com.udojava.evalex;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.util.ArithmeticUtils;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -414,7 +414,19 @@ public class Expression
             {
                 int n = parameters.get(0).intValue();
                 int k = parameters.get(1).intValue();
-                double d = ArithmeticUtils.binomialCoefficientDouble(n,k);
+                double d = CombinatoricsUtils.binomialCoefficientDouble(n,k);
+                return new BigDecimal(d);
+            }
+        });
+        addFunction(new Function("STIR", 2,
+                "Stirling number of 2nd kind: http://mathworld.wolfram.com/StirlingNumberoftheSecondKind.html")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                int n = parameters.get(0).intValue();
+                int k = parameters.get(1).intValue();
+                double d = CombinatoricsUtils.stirlingS2(n,k);
                 return new BigDecimal(d);
             }
         });
@@ -558,14 +570,29 @@ public class Expression
         });
 ///////////////////////////////////////////////////////
         addFunction(new Function("PERC", 2,
-                "Calculates how many percent is param1 of the whole (param2)")
+                "Get param1 percent of param2")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                return parameters.get(0).divide(new BigDecimal(100)).multiply(parameters.get(1));
+                return parameters.get(0).
+                        divide(new BigDecimal(100), MathContext.DECIMAL128).
+                        multiply(parameters.get(1));
             }
         });
+
+        addFunction(new Function("PER", 2,
+                "How many percent is param1 of param2")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                return parameters.get(0).
+                        multiply(new BigDecimal(100)).
+                        divide(parameters.get(1), MathContext.DECIMAL128);
+            }
+        });
+
         addFunction(new Function("H", 1,
                 "Evaluate _history element")
         {
@@ -583,7 +610,7 @@ public class Expression
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
-                BigDecimal p = parameters.get(0); 
+                BigDecimal p = parameters.get(0);
                 return new BigDecimal(2).pow(p.intValue()).subtract(BigDecimal.ONE);
             }
         });
@@ -704,6 +731,18 @@ public class Expression
             public BigDecimal eval (List<BigDecimal> parameters)
             {
                 return new BigDecimal(nextPrime(parameters.get(0).intValue()));
+            }
+        });
+
+        addFunction(new Function("PYT", 2,
+                "Pythagoras's result = sqrt(param1^2+param2^2) https://en.wikipedia.org/wiki/Pythagorean_theorem")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> par)
+            {
+                double a = par.get(0).doubleValue();
+                double b = par.get(1).doubleValue();
+                return new BigDecimal(Math.sqrt(a*a+b*b));
             }
         });
 
@@ -858,7 +897,7 @@ public class Expression
             {
                 if (token.startsWith("x"))
                 {
-                    
+
                     BigInteger bd = new BigInteger (token.substring(1), 16);
                     outputQueue.add(bd.toString(10));
                 }
