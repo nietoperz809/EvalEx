@@ -347,7 +347,13 @@ public class Expression
             @Override
             public BigDecimal eval (BigDecimal v1, BigDecimal v2)
             {
-                return new BigDecimal(~v2.longValue());
+                BigInteger bi = v2.toBigInteger();
+                int c = bi.bitLength();
+                for (int s=0; s<c; s++)
+                {
+                    bi = bi.flipBit(s);
+                }
+                return new BigDecimal(bi);
             }
         });
 
@@ -604,6 +610,7 @@ public class Expression
                 return ex.eval();
             }
         });
+
         addFunction(new Function("MERS", 1,
                 "Calculate Mersenne Number")
         {
@@ -660,6 +667,27 @@ public class Expression
                     num++;
                 }
                 return res.divide(new BigDecimal(num), MathContext.DECIMAL128);
+            }
+        });
+        addFunction(new Function("BYT", -1,
+                "Value from sequence of bytes")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                if (parameters.size() == 0)
+                {
+                    return BigDecimal.ZERO;
+                }
+                BigInteger res = BigInteger.ZERO;
+                for (BigDecimal parameter : parameters)
+                {
+                    if (parameter.intValue() < 0 || parameter.intValue() > 255)
+                        throw new ExpressionException("not a byte value");
+                    res = res.shiftLeft(8);
+                    res = res.or(parameter.toBigInteger());
+                }
+                return new BigDecimal(res);
             }
         });
         addFunction(new Function("GMEAN", -1,
