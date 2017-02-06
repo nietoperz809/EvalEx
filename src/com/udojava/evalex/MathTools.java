@@ -15,12 +15,14 @@ public class MathTools
             int n, int precision)
     {
         if (n == 0 || n == 1)
+        {
             return BigInteger.ONE;
+        }
         return pow(
                 Math.E,
                 factorialLog(n),
                 precision)
-                .toBigInteger().add (BigInteger.ONE);
+                .toBigInteger().add(BigInteger.ONE);
     }
 
     public static BigDecimal pow (double base, double exp, int precision)
@@ -38,7 +40,7 @@ public class MathTools
         return aToExp.multiply(bToExp);
     }
 
-    public static BigDecimal nthRoot(final int n, final BigDecimal a, final BigDecimal p)
+    public static BigDecimal nthRoot (final int n, final BigDecimal a, final BigDecimal p)
     {
         if (a.compareTo(BigDecimal.ZERO) < 0)
         {
@@ -55,8 +57,23 @@ public class MathTools
             xPrev = x;
             x = BigDecimal.valueOf(n - 1.0)
                     .multiply(x)
-                    .add(a.divide(x.pow(n - 1),MathContext.DECIMAL128))
+                    .add(a.divide(x.pow(n - 1), MathContext.DECIMAL128))
                     .divide(new BigDecimal(n), MathContext.DECIMAL128);
         }
         return x;
-    }}
+    }
+
+    public static String reverseHex (String originalHex)
+    {
+        // TODO: Validation that the length is even
+        int lengthInBytes = originalHex.length() / 2;
+        char[] chars = new char[lengthInBytes * 2];
+        for (int index = 0; index < lengthInBytes; index++)
+        {
+            int reversedIndex = lengthInBytes - 1 - index;
+            chars[reversedIndex * 2] = originalHex.charAt(index * 2);
+            chars[reversedIndex * 2 + 1] = originalHex.charAt(index * 2 + 1);
+        }
+        return new String(chars);
+    }
+}

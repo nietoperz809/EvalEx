@@ -753,12 +753,40 @@ public class Expression
         });
 
         addFunction(new Function("NPR", 1,
-                "Next prime number greater or euqal the argument")
+                "Next prime number greater or equal the argument")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
                 return new BigDecimal(nextPrime(parameters.get(0).intValue()));
+            }
+        });
+
+        addFunction(new Function("NSWP", 1,
+                "Swap nibbles")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                BigInteger bi = parameters.get(0).toBigInteger();
+                String s = bi.toString(16);
+                s = new StringBuilder(s).reverse().toString();
+                return new BigDecimal(new BigInteger(s, 16));
+            }
+        });
+
+        addFunction(new Function("BSWP", 1,
+                "Swap bytes")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                BigInteger bi = parameters.get(0).toBigInteger();
+                String s = bi.toString(16);
+                while (s.length()%4 != 0)
+                    s = s+"0";
+                s = MathTools.reverseHex(s);
+                return new BigDecimal(new BigInteger(s, 16));
             }
         });
 
