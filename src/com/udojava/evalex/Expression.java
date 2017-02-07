@@ -785,6 +785,8 @@ public class Expression
                 String s = bi.toString(16);
                 while (s.length()%4 != 0)
                     s = s+"0";
+                if (bi.intValue() < 256)
+                    s = "00"+s;
                 s = MathTools.reverseHex(s);
                 return new BigDecimal(new BigInteger(s, 16));
             }
