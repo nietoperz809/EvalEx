@@ -3,7 +3,7 @@ Simple command line calculator for programmers
 
 - Type .? to see this help text.
 
-- Use x, b or o prefix to denote hex, bin or octal numbers.
+- Use x, b or o prefix to denote hex, bin or octal numbers, e.g. xffd2 or b1101101
 
 - Type .o to see list of operators, or .f for functions.
 Both .o and .f can be narrowed giving an argument that is the first char of what is searched.
