@@ -349,6 +349,8 @@ public class Expression
             {
                 BigInteger bi = v2.toBigInteger();
                 int c = bi.bitLength();
+                if (c == 0)
+                    return BigDecimal.ONE;
                 for (int s=0; s<c; s++)
                 {
                     bi = bi.flipBit(s);
