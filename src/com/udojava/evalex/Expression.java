@@ -46,6 +46,7 @@ import static org.apache.commons.math3.stat.StatUtils.variance;
 @SuppressWarnings({"Since15", "BigDecimalMethodWithoutRoundingCalled"})
 public class Expression
 {
+    private static final BigDecimal sqrt5 = new BigDecimal(2.236067977499789805051477742381393909454345703125);
 
     /**
      * Definition of PI as a constant, can be used in expressions as variable.
@@ -806,6 +807,23 @@ public class Expression
             }
         });
 
+        addFunction(new Function("FIB", 1,
+                "Fibonacci number")
+        {
+            private final Operator exp = operators.get("^");
+
+            @Override
+            public BigDecimal eval (List<BigDecimal> par)
+            {
+                BigDecimal Phi = sqrt5.add(BigDecimal.ONE).divide(new BigDecimal(2), MathContext.DECIMAL128);
+                BigDecimal phi = Phi.subtract(BigDecimal.ONE);
+                BigDecimal b1 = exp.eval(Phi, par.get(0));
+                BigDecimal b2 = exp.eval(phi, par.get(0));
+                BigDecimal r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
+                return r;
+            }
+        });
+
         ///////////////////////////////////////////////
 
         addFunction(new Function("MIN", -1,
@@ -859,23 +877,33 @@ public class Expression
             }
         });
         addFunction(new Function("FLOOR", 1,
-                "Rounds down to nearest Integer")
+                "Rounds DOWN to nearest Integer")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
                 BigDecimal toRound = parameters.get(0);
-                return toRound.setScale(100, RoundingMode.FLOOR);
+                return toRound.setScale(0, RoundingMode.FLOOR);
             }
         });
         addFunction(new Function("CEIL", 1,
-                "Rounds up to nearest Integer")
+                "Rounds UP to nearest Integer")
         {
             @Override
             public BigDecimal eval (List<BigDecimal> parameters)
             {
                 BigDecimal toRound = parameters.get(0);
-                return toRound.setScale(100, RoundingMode.CEILING);
+                return toRound.setScale(0, RoundingMode.CEILING);
+            }
+        });
+        addFunction(new Function("ROU", 1,
+                "Rounds to nearest Integer")
+        {
+            @Override
+            public BigDecimal eval (List<BigDecimal> parameters)
+            {
+                BigDecimal toRound = parameters.get(0);
+                return toRound.setScale(0, RoundingMode.HALF_UP);
             }
         });
         addFunction(new Function("SQRT", 1,
