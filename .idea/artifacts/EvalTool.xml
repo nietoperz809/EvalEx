@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="EvalTool">
+    <output-path>$PROJECT_DIR$/out/artifacts/EvalTool</output-path>
+    <root id="archive" name="EvalTool.jar">
+      <element id="module-output" name="EvalExFork" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/commons/commons-math3/3.6/commons-math3-3.6.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-lang/commons-lang/2.6/commons-lang-2.6.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/fusesource/jansi/jansi/1.11/jansi-1.11.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

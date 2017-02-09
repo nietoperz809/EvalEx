@@ -11,6 +11,8 @@ import static org.apache.commons.math3.util.CombinatoricsUtils.factorialLog;
  */
 public class MathTools
 {
+    private static final BigDecimal SQRT5 = new BigDecimal("2.236067977499789805051477742381393909454345703125");
+
     public static BigInteger getFactorialUsingGammaApproximation (
             int n, int precision)
     {
@@ -76,4 +78,40 @@ public class MathTools
         }
         return new String(chars);
     }
+
+    public static BigDecimal iterativeFibonacci (int number)
+    {
+        // error condition
+        if (number < 0)
+        {
+            throw new ExpressionException("input is negative");
+        }
+        // two special cases
+        if (number == 0 || number == 1)
+        {
+            return new BigDecimal(number);
+        }
+        // values for n = 0, 1, 2
+        BigDecimal first = BigDecimal.ZERO;
+        BigDecimal second = BigDecimal.ONE;
+        BigDecimal third = first.add(second);
+        // calculate next value
+        for (int i = 3; i <= number; i++)
+        {
+            first = second;
+            second = third;
+            third = first.add(second);
+        }
+        return third;
+    }
+
+//    public static BigDecimal approxFibonacci (int n)
+//    {
+////                BigDecimal Phi = sqrt5.add(BigDecimal.ONE).divide(new BigDecimal(2), MathContext.DECIMAL128);
+////                BigDecimal phi = Phi.subtract(BigDecimal.ONE);
+////                BigDecimal b1 = exp.eval(Phi, par.get(0));
+////                BigDecimal b2 = exp.eval(phi, par.get(0));
+////                BigDecimal r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
+////                return r;
+//    }
 }

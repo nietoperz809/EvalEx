@@ -43,11 +43,8 @@ import static org.apache.commons.math3.stat.StatUtils.variance;
  *
  * @author Udo Klimaschewski (http://about.me/udo.klimaschewski)
  */
-@SuppressWarnings({"Since15", "BigDecimalMethodWithoutRoundingCalled"})
 public class Expression
 {
-    private static final BigDecimal sqrt5 = new BigDecimal(2.236067977499789805051477742381393909454345703125);
-
     /**
      * Definition of PI as a constant, can be used in expressions as variable.
      */
@@ -71,11 +68,6 @@ public class Expression
      * The characters (other than letters and digits) allowed as the second or subsequent characters in a variable.
      */
     private String varChars = "_";
-
-    /**
-     * The original infix expression.
-     */
-    private final String originalExpression;
 
     /**
      * The current infix expression, with optional variable substitutions.
@@ -144,7 +136,10 @@ public class Expression
     {
         this.history = hist;
         this.expression = expression;
-        this.originalExpression = expression;
+        /*
+      The original infix expression.
+     */
+        String originalExpression = expression;
         addOperator(new Operator("+", 20, true,
                 "Addition")
         {
@@ -815,12 +810,7 @@ public class Expression
             @Override
             public BigDecimal eval (List<BigDecimal> par)
             {
-                BigDecimal Phi = sqrt5.add(BigDecimal.ONE).divide(new BigDecimal(2), MathContext.DECIMAL128);
-                BigDecimal phi = Phi.subtract(BigDecimal.ONE);
-                BigDecimal b1 = exp.eval(Phi, par.get(0));
-                BigDecimal b2 = exp.eval(phi, par.get(0));
-                BigDecimal r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
-                return r;
+                return MathTools.iterativeFibonacci(par.get(0).intValue());
             }
         });
 
@@ -1235,7 +1225,7 @@ public class Expression
      * @param value    The variable value.
      * @return The expression, allows to chain methods.
      */
-    public Expression setVariable (String variable, BigDecimal value)
+    private Expression setVariable (String variable, BigDecimal value)
     {
         variables.put(variable, value);
         return this;
@@ -1246,7 +1236,7 @@ public class Expression
      * @return The previous operator with that name, or <code>null</code> if
      * there was none.
      */
-    public Operator addOperator (Operator operator)
+private Operator addOperator (Operator operator)
     {
         return operators.put(operator.getName(), operator);
     }
@@ -1268,7 +1258,7 @@ public class Expression
      * @return The previous operator with that name, or <code>null</code> if
      * there was none.
      */
-    public Function addFunction (Function function)
+private Function addFunction (Function function)
     {
         return (Function) functions.put(function.getName(), function);
     }
@@ -1280,7 +1270,7 @@ public class Expression
      * @param value    The variable value.
      * @return The expression, allows to chain methods.
      */
-    public Expression setVariable (String variable, String value)
+    private Expression setVariable (String variable, String value)
     {
         if (isNumber(value))
         {
@@ -1551,19 +1541,6 @@ private LazyFunction addLazyFunction (LazyFunction function)
     interface LazyNumber
     {
         BigDecimal eval ();
-    }
-
-    /**
-     * The expression evaluators exception class.
-     */
-    public static class ExpressionException extends RuntimeException
-    {
-        private static final long serialVersionUID = 1118142866870779047L;
-
-        public ExpressionException (String message)
-        {
-            super(message);
-        }
     }
 
     class Mathobject
