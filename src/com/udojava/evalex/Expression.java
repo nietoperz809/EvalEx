@@ -46,79 +46,52 @@ import static org.apache.commons.math3.stat.StatUtils.variance;
 public class Expression
 {
     /**
-     * Definition of PI as a constant, can be used in expressions as variable.
-     */
-    private static final BigDecimal PI = new BigDecimal(
-            "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
-
-    /**
-     * Definition of e: "Euler's number" as a constant, can be used in expressions as variable.
-     */
-    private static final BigDecimal e = new BigDecimal(
-            "2.71828182845904523536028747135266249775724709369995957496696762772407663");
-    private final LinkedList<String> history;
-
-
-    /**
-     * The characters (other than letters and digits) allowed as the first character in a variable.
-     */
-    private String firstVarChars = "_";
-
-    /**
-     * The characters (other than letters and digits) allowed as the second or subsequent characters in a variable.
-     */
-    private String varChars = "_";
-
-    /**
-     * The current infix expression, with optional variable substitutions.
-     */
-    private String expression = null;
-
-    /**
-     * The cached RPN (Reverse Polish Notation) of the expression.
-     */
-    private List<String> rpn = null;
-
-    /**
-     * All defined operators with name and implementation.
-     */
-    private final Map<String, Operator> operators = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-
-    public Map<String, Operator> getOps()
-    {
-        return operators;
-    }
-
-    /**
-     * All defined functions with name and implementation.
-     */
-    private final Map<String, LazyFunction> functions = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-
-    public Map<String, LazyFunction> getFuncs()
-    {
-        return functions;
-    }
-
-    /**
-     * All defined variables with name and value.
-     */
-    private final Map<String, BigDecimal> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-
-    /**
      * What character to use for decimal separators.
      */
     private static final char decimalSeparator = '.';
-
     /**
      * What character to use for minus sign (negative values).
      */
     private static final char minusSign = '-';
-
     /**
      * The BigDecimal representation of the left parenthesis,
      * used for parsing varying numbers of function parameters.
      */
     private static final LazyNumber PARAMS_START = () -> null;
+    private final LinkedList<String> history;
+    /**
+     * All defined operators with name and implementation.
+     */
+    private final Map<String, Operator> operators = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    /**
+     * All defined functions with name and implementation.
+     */
+    private final Map<String, LazyFunction> functions = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    /**
+     * All defined variables with name and value.
+     */
+    private final Map<String, BigDecimal> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+    public void addVariables (Map<String, BigDecimal> vars)
+    {
+        variables.putAll(vars);
+    }
+    /**
+     * The characters (other than letters and digits) allowed as the first character in a variable.
+     */
+    private String firstVarChars = "_";
+    /**
+     * The characters (other than letters and digits) allowed as the second or subsequent characters in a variable.
+     */
+    private String varChars = "_";
+    /**
+     * The current infix expression, with optional variable substitutions.
+     */
+    private String expression = null;
+    /**
+     * The cached RPN (Reverse Polish Notation) of the expression.
+     */
+    private List<String> rpn = null;
 
     public Expression (String s)
     {
@@ -907,52 +880,108 @@ public class Expression
             }
         });
 
-        variables.put("e", e);
-        variables.put("PI", PI);
-        variables.put("TRUE", BigDecimal.ONE);
-        variables.put("FALSE", BigDecimal.ZERO);
-        variables.put("BUILD", new BigDecimal(Main.BUILD_NUMBER));
+//        variables.put("e", e);
+//        variables.put("PI", PI);
+//        variables.put("TRUE", BigDecimal.ONE);
+//        variables.put("FALSE", BigDecimal.ZERO);
+//        variables.put("BUILD", new BigDecimal(Main.BUILD_NUMBER));
     }
 
-    /**
-     * Is the string a number?
+/**
+     * Adds an operator to the list of supported operators.
      *
-     * @param st The string.
-     * @return <code>true</code>, if the input string is a number.
+     * @param operator The operator to add.
+     * @return The previous operator with that name, or <code>null</code> if
+     * there was none.
      */
-    private boolean isNumber (String st)
+private Operator addOperator (Operator operator)
     {
-        if (st.startsWith("x") && !st.equals("xor") ||
-                (st.startsWith("b") && (st.charAt(1) == '0' || st.charAt(1)=='1')) ||
-                st.startsWith("o") && !st.equals("or"))
+        return operators.put(operator.getName(), operator);
+    }
+
+/**
+     * Adds a function to the list of supported functions
+     *
+     * @param function The function to add.
+     * @return The previous operator with that name, or <code>null</code> if
+     * there was none.
+     */
+private Function addFunction (Function function)
+    {
+        return (Function) functions.put(function.getName(), function);
+    }
+
+/**
+     * Evaluates the expression.
+     *
+     * @return The result of the expression.
+     */
+    public BigDecimal eval ()
+    {
+
+        Stack<LazyNumber> stack = new Stack<>();
+
+        for (final String token : getRPN())
         {
-            return true;
-        }
-        if (st.charAt(0) == minusSign && st.length() == 1)
-        {
-            return false;
-        }
-        if (st.charAt(0) == '+' && st.length() == 1)
-        {
-            return false;
-        }
-        if (st.charAt(0) == 'e' || st.charAt(0) == 'E')
-        {
-            return false;
-        }
-        for (char ch : st.toCharArray())
-        {
-            if (!Character.isDigit(ch) && ch != minusSign
-                    && ch != decimalSeparator
-                    && ch != 'e' && ch != 'E' && ch != '+')
+            if (operators.containsKey(token))
             {
-                return false;
+                final LazyNumber v1 = stack.pop();
+                final LazyNumber v2 = stack.pop();
+                LazyNumber number = () -> operators.get(token).eval(v2.eval(), v1.eval());
+                stack.push(number);
+            }
+            else if (variables.containsKey(token))
+            {
+                stack.push(() -> variables.get(token));
+            }
+            else if (functions.containsKey(token.toUpperCase(Locale.ROOT)))
+            {
+                LazyFunction f = functions.get(token.toUpperCase(Locale.ROOT));
+                ArrayList<LazyNumber> p = new ArrayList<>(
+                        !f.numParamsVaries() ? f.getNumParams() : 0);
+                // pop parameters off the stack until we hit the start of
+                // this function's parameter list
+                while (!stack.isEmpty() && stack.peek() != PARAMS_START)
+                {
+                    p.add(0, stack.pop());
+                }
+                if (stack.peek() == PARAMS_START)
+                {
+                    stack.pop();
+                }
+                LazyNumber fResult = f.lazyEval(p);
+                stack.push(fResult);
+            }
+            else if ("(".equals(token))
+            {
+                stack.push(PARAMS_START);
+            }
+            else
+            {
+                stack.push(() -> new BigDecimal(token));
             }
         }
-        return true;
+        return stack.pop().eval().stripTrailingZeros();
     }
 
-    /**
+    /*
+    * Cached access to the RPN notation of this expression, ensures only one
+     * calculation of the RPN per expression instance. If no cached instance
+     * exists, a new one will be created and put to the cache.
+     *
+     * @return The cached RPN instance.
+     */
+    private List<String> getRPN ()
+    {
+        if (rpn == null)
+        {
+            rpn = shuntingYard(this.expression);
+            validate(rpn);
+        }
+        return rpn;
+    }
+
+        /**
      * Implementation of the <i>Shunting Yard</i> algorithm to transform an
      * infix expression to a RPN expression.
      *
@@ -1107,310 +1136,7 @@ public class Expression
         }
         return outputQueue;
     }
-
-    /**
-     * Sets the precision for expression evaluation.
-     *
-     * @param precision The new precision.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression setPrecision (int precision)
-    {
-        return this;
-    }    /**
-     * Evaluates the expression.
-     *
-     * @return The result of the expression.
-     */
-    public BigDecimal eval ()
-    {
-
-        Stack<LazyNumber> stack = new Stack<>();
-
-        for (final String token : getRPN())
-        {
-            if (operators.containsKey(token))
-            {
-                final LazyNumber v1 = stack.pop();
-                final LazyNumber v2 = stack.pop();
-                LazyNumber number = () -> operators.get(token).eval(v2.eval(), v1.eval());
-                stack.push(number);
-            }
-            else if (variables.containsKey(token))
-            {
-                stack.push(() -> variables.get(token));
-            }
-            else if (functions.containsKey(token.toUpperCase(Locale.ROOT)))
-            {
-                LazyFunction f = functions.get(token.toUpperCase(Locale.ROOT));
-                ArrayList<LazyNumber> p = new ArrayList<>(
-                        !f.numParamsVaries() ? f.getNumParams() : 0);
-                // pop parameters off the stack until we hit the start of
-                // this function's parameter list
-                while (!stack.isEmpty() && stack.peek() != PARAMS_START)
-                {
-                    p.add(0, stack.pop());
-                }
-                if (stack.peek() == PARAMS_START)
-                {
-                    stack.pop();
-                }
-                LazyNumber fResult = f.lazyEval(p);
-                stack.push(fResult);
-            }
-            else if ("(".equals(token))
-            {
-                stack.push(PARAMS_START);
-            }
-            else
-            {
-                stack.push(() -> new BigDecimal(token));
-            }
-        }
-        return stack.pop().eval().stripTrailingZeros();
-    }
-
-    /**
-     * Sets the rounding _radix for expression evaluation.
-     *
-     * @param roundingMode The new rounding _radix.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression setRoundingMode (RoundingMode roundingMode)
-    {
-        return this;
-    }
-
-    /**
-     * Sets the characters other than letters and digits that are valid as the
-     * first character of a variable.
-     *
-     * @param chars The new set of variable characters.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression setFirstVariableCharacters (String chars)
-    {
-        this.firstVarChars = chars;
-        return this;
-    }
-
-    /**
-     * Sets the characters other than letters and digits that are valid as the
-     * second and subsequent characters of a variable.
-     *
-     * @param chars The new set of variable characters.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression setVariableCharacters (String chars)
-    {
-        this.varChars = chars;
-        return this;
-    }
-
-    /**
-     * Sets a variable value.
-     *
-     * @param variable The variable to set.
-     * @param value    The variable value.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression with (String variable, BigDecimal value)
-    {
-        return setVariable(variable, value);
-    }
-
-    /**
-     * Sets a variable value.
-     *
-     * @param variable The variable name.
-     * @param value    The variable value.
-     * @return The expression, allows to chain methods.
-     */
-    private Expression setVariable (String variable, BigDecimal value)
-    {
-        variables.put(variable, value);
-        return this;
-    }    /**
-     * Adds an operator to the list of supported operators.
-     *
-     * @param operator The operator to add.
-     * @return The previous operator with that name, or <code>null</code> if
-     * there was none.
-     */
-private Operator addOperator (Operator operator)
-    {
-        return operators.put(operator.getName(), operator);
-    }
-
-    /**
-     * Sets a variable value.
-     *
-     * @param variable The variable to set.
-     * @param value    The variable value.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression and (String variable, String value)
-    {
-        return setVariable(variable, value);
-    }    /**
-     * Adds a function to the list of supported functions
-     *
-     * @param function The function to add.
-     * @return The previous operator with that name, or <code>null</code> if
-     * there was none.
-     */
-private Function addFunction (Function function)
-    {
-        return (Function) functions.put(function.getName(), function);
-    }
-
-    /**
-     * Sets a variable value.
-     *
-     * @param variable The variable to set.
-     * @param value    The variable value.
-     * @return The expression, allows to chain methods.
-     */
-    private Expression setVariable (String variable, String value)
-    {
-        if (isNumber(value))
-        {
-            variables.put(variable, new BigDecimal(value));
-        }
-        else
-        {
-            expression = expression.replaceAll("(?i)\\b" + variable + "\\b", "("
-                    + value + ")");
-            rpn = null;
-        }
-        return this;
-    }    /**
-     * Adds a lazy function function to the list of supported functions
-     *
-     * @param function The function to add.
-     * @return The previous operator with that name, or <code>null</code> if
-     * there was none.
-     */
-private LazyFunction addLazyFunction (LazyFunction function)
-    {
-        return functions.put(function.getName(), function);
-    }
-
-
-    /**
-     * Sets a variable value.
-     *
-     * @param variable The variable to set.
-     * @param value    The variable value.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression with (String variable, String value)
-    {
-        return setVariable(variable, value);
-    }
-
-    /**
-     * Get an iterator for this expression, allows iterating over an expression
-     * token by token.
-     *
-     * @return A new iterator instance for this expression.
-     */
-    public Iterator<String> getExpressionTokenizer ()
-    {
-        return new Tokenizer(this.expression);
-    }
-
-    /**
-     * Get a string representation of the RPN (Reverse Polish Notation) for this
-     * expression.
-     *
-     * @return A string with the RPN representation for this expression.
-     */
-    public String toRPN ()
-    {
-        StringBuilder result = new StringBuilder();
-        for (String st : getRPN())
-        {
-            if (result.length() != 0)
-            {
-                result.append(" ");
-            }
-            result.append(st);
-        }
-        return result.toString();
-    }
-
-    /**
-     * Exposing declared variables in the expression.
-     *
-     * @return All declared variables.
-     */
-    public Set<String> getDeclaredVariables ()
-    {
-        return Collections.unmodifiableSet(variables.keySet());
-    }
-
-    /**
-     * Exposing declared operators in the expression.
-     *
-     * @return All declared operators.
-     */
-    public Set<String> getDeclaredOperators ()
-    {
-        return Collections.unmodifiableSet(operators.keySet());
-    }
-
-    /**
-     * Exposing declared functions.
-     *
-     * @return All declared functions.
-     */
-    public Set<String> getDeclaredFunctions ()
-    {
-        return Collections.unmodifiableSet(functions.keySet());
-    }
-
-    /*
-    * Cached access to the RPN notation of this expression, ensures only one
-     * calculation of the RPN per expression instance. If no cached instance
-     * exists, a new one will be created and put to the cache.
-     *
-     * @return The cached RPN instance.
-     */
-    private List<String> getRPN ()
-    {
-        if (rpn == null)
-        {
-            rpn = shuntingYard(this.expression);
-            validate(rpn);
-        }
-        return rpn;
-    }
-
-    /**
-     * Returns a list of the variables in the expression.
-     *
-     * @return A list of the variable names in this expression.
-     */
-    public List<String> getUsedVariables ()
-    {
-        List<String> result = new ArrayList<>();
-        Tokenizer tokenizer = new Tokenizer(expression);
-        while (tokenizer.hasNext())
-        {
-            String token = tokenizer.next();
-            if (functions.containsKey(token) || operators.containsKey(token)
-                    || token.equals("(") || token.equals(")")
-                    || token.equals(",") || isNumber(token)
-                    || token.equals("PI") || token.equals("e")
-                    || token.equals("TRUE") || token.equals("FALSE"))
-            {
-                continue;
-            }
-            result.add(token);
-        }
-        return result;
-    }    /**
+/**
      * Check that the expression has enough numbers and variables to fit the
      * requirements of the operators and functions, also check
      * for only 1 result stored at the end of the evaluation.
@@ -1482,6 +1208,267 @@ private LazyFunction addLazyFunction (LazyFunction function)
         }
     }
 
+    /**
+     * Is the string a number?
+     *
+     * @param st The string.
+     * @return <code>true</code>, if the input string is a number.
+     */
+    private boolean isNumber (String st)
+    {
+        if (st.startsWith("x") && !st.equals("xor") ||
+                (st.startsWith("b") && (st.charAt(1) == '0' || st.charAt(1)=='1')) ||
+                st.startsWith("o") && !st.equals("or"))
+        {
+            return true;
+        }
+        if (st.charAt(0) == minusSign && st.length() == 1)
+        {
+            return false;
+        }
+        if (st.charAt(0) == '+' && st.length() == 1)
+        {
+            return false;
+        }
+        if (st.charAt(0) == 'e' || st.charAt(0) == 'E')
+        {
+            return false;
+        }
+        for (char ch : st.toCharArray())
+        {
+            if (!Character.isDigit(ch) && ch != minusSign
+                    && ch != decimalSeparator
+                    && ch != 'e' && ch != 'E' && ch != '+')
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Map<String, Operator> getOps()
+    {
+        return operators;
+    }
+
+    public Map<String, LazyFunction> getFuncs()
+    {
+        return functions;
+    }
+
+/**
+     * Sets the precision for expression evaluation.
+     *
+     * @param precision The new precision.
+     * @return The expression, allows to chain methods.
+     */
+    public Expression setPrecision (int precision)
+    {
+        return this;
+    }
+
+        /**
+     * Sets the rounding _radix for expression evaluation.
+     *
+     * @param roundingMode The new rounding _radix.
+     * @return The expression, allows to chain methods.
+     */
+    public Expression setRoundingMode (RoundingMode roundingMode)
+    {
+        return this;
+    }
+    /**
+     * Sets the characters other than letters and digits that are valid as the
+     * first character of a variable.
+     *
+     * @param chars The new set of variable characters.
+     * @return The expression, allows to chain methods.
+     */
+    public Expression setFirstVariableCharacters (String chars)
+    {
+        this.firstVarChars = chars;
+        return this;
+    }
+
+        /**
+     * Sets the characters other than letters and digits that are valid as the
+     * second and subsequent characters of a variable.
+     *
+     * @param chars The new set of variable characters.
+     * @return The expression, allows to chain methods.
+     */
+    public Expression setVariableCharacters (String chars)
+    {
+        this.varChars = chars;
+        return this;
+    }
+    /**
+     * Sets a variable value.
+     *
+     * @param variable The variable to set.
+     * @param value    The variable value.
+     * @return The expression, allows to chain methods.
+     */
+    public Expression with (String variable, BigDecimal value)
+    {
+        return setVariable(variable, value);
+    }
+
+    /**
+     * Sets a variable value.
+     *
+     * @param variable The variable name.
+     * @param value    The variable value.
+     * @return The expression, allows to chain methods.
+     */
+    private Expression setVariable (String variable, BigDecimal value)
+    {
+        variables.put(variable, value);
+        return this;
+    }
+/**
+     * Sets a variable value.
+     *
+     * @param variable The variable to set.
+     * @param value    The variable value.
+     * @return The expression, allows to chain methods.
+     */
+    public Expression and (String variable, String value)
+    {
+        return setVariable(variable, value);
+    }
+
+/**
+     * Sets a variable value.
+     *
+     * @param variable The variable to set.
+     * @param value    The variable value.
+     * @return The expression, allows to chain methods.
+     */
+    private Expression setVariable (String variable, String value)
+    {
+        if (isNumber(value))
+        {
+            variables.put(variable, new BigDecimal(value));
+        }
+        else
+        {
+            expression = expression.replaceAll("(?i)\\b" + variable + "\\b", "("
+                    + value + ")");
+            rpn = null;
+        }
+        return this;
+    }
+
+/**
+     * Adds a lazy function function to the list of supported functions
+     *
+     * @param function The function to add.
+     * @return The previous operator with that name, or <code>null</code> if
+     * there was none.
+     */
+private LazyFunction addLazyFunction (LazyFunction function)
+    {
+        return functions.put(function.getName(), function);
+    }
+
+    /**
+     * Sets a variable value.
+     *
+     * @param variable The variable to set.
+     * @param value    The variable value.
+     * @return The expression, allows to chain methods.
+     */
+    public Expression with (String variable, String value)
+    {
+        return setVariable(variable, value);
+    }
+
+    /**
+     * Get an iterator for this expression, allows iterating over an expression
+     * token by token.
+     *
+     * @return A new iterator instance for this expression.
+     */
+    public Iterator<String> getExpressionTokenizer ()
+    {
+        return new Tokenizer(this.expression);
+    }
+
+    /**
+     * Get a string representation of the RPN (Reverse Polish Notation) for this
+     * expression.
+     *
+     * @return A string with the RPN representation for this expression.
+     */
+    public String toRPN ()
+    {
+        StringBuilder result = new StringBuilder();
+        for (String st : getRPN())
+        {
+            if (result.length() != 0)
+            {
+                result.append(" ");
+            }
+            result.append(st);
+        }
+        return result.toString();
+    }
+
+    /**
+     * Exposing declared variables in the expression.
+     *
+     * @return All declared variables.
+     */
+    public Set<String> getDeclaredVariables ()
+    {
+        return Collections.unmodifiableSet(variables.keySet());
+    }
+
+    /**
+     * Exposing declared operators in the expression.
+     *
+     * @return All declared operators.
+     */
+    public Set<String> getDeclaredOperators ()
+    {
+        return Collections.unmodifiableSet(operators.keySet());
+    }
+
+        /**
+     * Exposing declared functions.
+     *
+     * @return All declared functions.
+     */
+    public Set<String> getDeclaredFunctions ()
+    {
+        return Collections.unmodifiableSet(functions.keySet());
+    }
+/**
+     * Returns a list of the variables in the expression.
+     *
+     * @return A list of the variable names in this expression.
+     */
+    public List<String> getUsedVariables ()
+    {
+        List<String> result = new ArrayList<>();
+        Tokenizer tokenizer = new Tokenizer(expression);
+        while (tokenizer.hasNext())
+        {
+            String token = tokenizer.next();
+            if (functions.containsKey(token) || operators.containsKey(token)
+                    || token.equals("(") || token.equals(")")
+                    || token.equals(",") || isNumber(token)
+                    || token.equals("PI") || token.equals("e")
+                    || token.equals("TRUE") || token.equals("FALSE"))
+            {
+                continue;
+            }
+            result.add(token);
+        }
+        return result;
+    }
+
 // --Commented out by Inspection START (1/28/2017 1:58 PM):
 //    /**
 //     * The original expression used to construct this expression, without
@@ -1544,14 +1531,13 @@ private LazyFunction addLazyFunction (LazyFunction function)
     {
 
         /**
-         * Actual position in expression string.
-         */
-        private int pos = 0;
-
-        /**
          * The original input expression.
          */
         private final String input;
+        /**
+         * Actual position in expression string.
+         */
+        private int pos = 0;
         /**
          * The previous token or <code>null</code> if none.
          */

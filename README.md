@@ -17,8 +17,6 @@ if '.p' is followed by 'all' then the whole history is replayed.
 - To change the output, type '.r n' where n can be any value from 2 to 36 inclusively.
 If .r (radix) is 0, then output is presented as real number, otherwise it is integer.
 
-- To clear the screen type .cls.
-
 ... or type any term (that is evaluated immediately) 
 
 - or .x to exit ...
