@@ -45,6 +45,25 @@ import static org.apache.commons.math3.stat.StatUtils.variance;
  */
 public class Expression
 {
+    class PitDecimal extends BigDecimal
+    {
+        String varToken;
+
+        public PitDecimal (String val)
+        {
+            super(val);
+        }
+
+        public void setVarToken (String varToken)
+        {
+            this.varToken = varToken;
+        }
+
+        public String getVarToken ()
+        {
+            return varToken;
+        }
+    }
     /**
      * What character to use for decimal separators.
      */
@@ -71,11 +90,12 @@ public class Expression
      * All defined variables with name and value.
      */
     private final Map<String, BigDecimal> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Map<String, BigDecimal> mainVars;
 
-    public void addVariables (Map<String, BigDecimal> vars)
-    {
-        variables.putAll(vars);
-    }
+//    public void addVariables (Map<String, BigDecimal> vars)
+//    {
+//        variables.putAll(vars);
+//    }
     /**
      * The characters (other than letters and digits) allowed as the first character in a variable.
      */
@@ -93,11 +113,6 @@ public class Expression
      */
     private List<String> rpn = null;
 
-    public Expression (String s)
-    {
-        this (s, null);
-    }
-
     /**
      * Creates a new expression instance from an expression string with a given
      * default match context.
@@ -105,13 +120,14 @@ public class Expression
      * @param expression         The expression. E.g. <code>"2.4*sin(3)/(2-4)"</code> or
      *                           <code>"sin(y)>0 & max(z, 3)>3"</code>
      */
-    public Expression (String expression, LinkedList<String> hist)
+    public Expression (String expression, LinkedList<String> hist, Map<String, BigDecimal> vars)
     {
         this.history = hist;
         this.expression = expression;
-        /*
-      The original infix expression.
-     */
+
+        variables.putAll(vars);
+        mainVars = vars;
+
         String originalExpression = expression;
         addOperator(new Operator("+", 20, true,
                 "Addition")
@@ -250,8 +266,25 @@ public class Expression
             }
         });
 
+        addOperator(new Operator("->", 7, false,
+                "Set variable v to new value ")
+        {
+            @Override
+            public BigDecimal eval (BigDecimal v1, BigDecimal v2)
+            {
+                if (v1 instanceof PitDecimal)
+                {
+                    PitDecimal target = (PitDecimal)v1;
+                    String s = target.getVarToken();
+                    setVariable (s, v2);
+                    return BigDecimal.ONE;
+                }
+                throw new ExpressionException("LHS not variable");
+            }
+        });
+
         addOperator(new Operator("=", 7, false,
-                "Equality. See https://en.wikipedia.org/wiki/Equality_(mathematics)")
+                "Equality")
         {
             @Override
             public BigDecimal eval (BigDecimal v1, BigDecimal v2)
@@ -304,8 +337,6 @@ public class Expression
             public BigDecimal eval (BigDecimal v1, BigDecimal v2)
             {
                 BigInteger fact = MathTools.getFactorialUsingGammaApproximation(v1.intValue(), 100);
-                //ArithmeticUtils.
-                //double n = Gamma.gamma(v1.doubleValue());
                 return new BigDecimal(fact);
             }
         });
@@ -577,7 +608,7 @@ public class Expression
             public BigDecimal eval (List<BigDecimal> parameters)
             {
                 int i = parameters.get(0).intValue();
-                Expression ex = new Expression(history.get(i), history);
+                Expression ex = new Expression (history.get(i), history, mainVars);
                 return ex.eval();
             }
         });
@@ -918,7 +949,6 @@ private Function addFunction (Function function)
      */
     public BigDecimal eval ()
     {
-
         Stack<LazyNumber> stack = new Stack<>();
 
         for (final String token : getRPN())
@@ -932,7 +962,9 @@ private Function addFunction (Function function)
             }
             else if (variables.containsKey(token))
             {
-                stack.push(() -> variables.get(token));
+                PitDecimal bd = new PitDecimal (variables.get(token).toString());
+                bd.setVarToken (token);
+                stack.push(() -> bd);
             }
             else if (functions.containsKey(token.toUpperCase(Locale.ROOT)))
             {
@@ -1256,27 +1288,6 @@ private Function addFunction (Function function)
         return functions;
     }
 
-/**
-     * Sets the precision for expression evaluation.
-     *
-     * @param precision The new precision.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression setPrecision (int precision)
-    {
-        return this;
-    }
-
-        /**
-     * Sets the rounding _radix for expression evaluation.
-     *
-     * @param roundingMode The new rounding _radix.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression setRoundingMode (RoundingMode roundingMode)
-    {
-        return this;
-    }
     /**
      * Sets the characters other than letters and digits that are valid as the
      * first character of a variable.
@@ -1323,7 +1334,7 @@ private Function addFunction (Function function)
      */
     private Expression setVariable (String variable, BigDecimal value)
     {
-        variables.put(variable, value);
+        mainVars.put(variable, value);
         return this;
     }
 /**
