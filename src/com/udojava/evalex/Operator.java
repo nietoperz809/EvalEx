@@ -1,7 +1,5 @@
 package com.udojava.evalex;
 
-import java.math.BigDecimal;
-
 /**
  * Abstract definition of a supported operator. An operator is defined by
  * its name (pattern), precedence and if it is left- or right associative.
@@ -55,5 +53,5 @@ public abstract class Operator extends Mathobject
      * @param v2 Operand 2.
      * @return The result of the operation.
      */
-    public abstract BigDecimal eval (BigDecimal v1, BigDecimal v2);
+    public abstract BigNumber eval (BigNumber v1, BigNumber v2);
 }

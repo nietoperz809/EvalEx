@@ -1,11 +1,9 @@
 package com.udojava.evalex;
 
-import java.math.BigDecimal;
-
 /**
  * Created by Administrator on 2/19/2017.
  */
-class PitDecimal extends BigDecimal
+class PitDecimal extends BigNumber
 {
     String varToken;
 

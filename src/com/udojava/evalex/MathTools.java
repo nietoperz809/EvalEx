@@ -1,6 +1,5 @@
 package com.udojava.evalex;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 
@@ -11,7 +10,7 @@ import static org.apache.commons.math3.util.CombinatoricsUtils.factorialLog;
  */
 public class MathTools
 {
-    private static final BigDecimal SQRT5 = new BigDecimal("2.236067977499789805051477742381393909454345703125");
+    private static final BigNumber SQRT5 = new BigNumber("2.236067977499789805051477742381393909454345703125");
 
     public static BigInteger getFactorialUsingGammaApproximation (
             int n, int precision)
@@ -27,40 +26,40 @@ public class MathTools
                 .toBigInteger().add(BigInteger.ONE);
     }
 
-    public static BigDecimal pow (double base, double exp, int precision)
+    public static BigNumber pow (double base, double exp, int precision)
     {
         //get integer part of base
-        BigDecimal a = new BigDecimal(
-                new BigDecimal(exp).toBigInteger());
+        BigNumber a = new BigNumber(
+                new BigNumber(exp).toBigInteger());
         // get fractional part of base
         double b = exp - a.doubleValue();
-        BigDecimal aToExp = new BigDecimal(base).pow(
+        BigNumber aToExp = new BigNumber(base).pow(
                 a.toBigIntegerExact().intValue(),
                 new MathContext(precision));
         //putting all together
-        BigDecimal bToExp = new BigDecimal(Math.pow(base, b));
+        BigNumber bToExp = new BigNumber(Math.pow(base, b));
         return aToExp.multiply(bToExp);
     }
 
-    public static BigDecimal nthRoot (final int n, final BigDecimal a, final BigDecimal p)
+    public static BigNumber nthRoot (final int n, final BigNumber a, final BigNumber p)
     {
-        if (a.compareTo(BigDecimal.ZERO) < 0)
+        if (a.compareTo(BigNumber.ZERO) < 0)
         {
             throw new IllegalArgumentException("nth root can only be calculated for positive numbers");
         }
-        if (a.equals(BigDecimal.ZERO))
+        if (a.equals(BigNumber.ZERO))
         {
-            return BigDecimal.ZERO;
+            return BigNumber.ZERO;
         }
-        BigDecimal xPrev = a;
-        BigDecimal x = a.divide(new BigDecimal(n), MathContext.DECIMAL128);  // starting "guessed" value...
+        BigNumber xPrev = a;
+        BigNumber x = a.divide(new BigNumber(n), MathContext.DECIMAL128);  // starting "guessed" value...
         while (x.subtract(xPrev).abs().compareTo(p) > 0)
         {
             xPrev = x;
-            x = BigDecimal.valueOf(n - 1.0)
+            x = BigNumber.valueOf(n - 1.0)
                     .multiply(x)
                     .add(a.divide(x.pow(n - 1), MathContext.DECIMAL128))
-                    .divide(new BigDecimal(n), MathContext.DECIMAL128);
+                    .divide(new BigNumber(n), MathContext.DECIMAL128);
         }
         return x;
     }
@@ -79,7 +78,7 @@ public class MathTools
         return new String(chars);
     }
 
-    public static BigDecimal iterativeFibonacci (int number)
+    public static BigNumber iterativeFibonacci (int number)
     {
         // error condition
         if (number < 0)
@@ -89,12 +88,12 @@ public class MathTools
         // two special cases
         if (number == 0 || number == 1)
         {
-            return new BigDecimal(number);
+            return new BigNumber(number);
         }
         // values for n = 0, 1, 2
-        BigDecimal first = BigDecimal.ZERO;
-        BigDecimal second = BigDecimal.ONE;
-        BigDecimal third = first.add(second);
+        BigNumber first = BigNumber.ZERO;
+        BigNumber second = BigNumber.ONE;
+        BigNumber third = first.add(second);
         // calculate next value
         for (int i = 3; i <= number; i++)
         {
@@ -105,13 +104,13 @@ public class MathTools
         return third;
     }
 
-//    public static BigDecimal approxFibonacci (int n)
+//    public static BigNumber approxFibonacci (int n)
 //    {
-////                BigDecimal Phi = sqrt5.add(BigDecimal.ONE).divide(new BigDecimal(2), MathContext.DECIMAL128);
-////                BigDecimal phi = Phi.subtract(BigDecimal.ONE);
-////                BigDecimal b1 = exp.eval(Phi, par.get(0));
-////                BigDecimal b2 = exp.eval(phi, par.get(0));
-////                BigDecimal r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
+////                BigNumber Phi = sqrt5.add(BigNumber.ONE).divide(new BigNumber(2), MathContext.DECIMAL128);
+////                BigNumber phi = Phi.subtract(BigNumber.ONE);
+////                BigNumber b1 = exp.eval(Phi, par.get(0));
+////                BigNumber b2 = exp.eval(phi, par.get(0));
+////                BigNumber r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
 ////                return r;
 //    }
 }

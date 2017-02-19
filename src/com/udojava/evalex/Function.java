@@ -1,6 +1,5 @@
 package com.udojava.evalex;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +23,7 @@ public abstract class Function extends LazyFunction
 
     public LazyNumber lazyEval (List<LazyNumber> lazyParams)
     {
-        final List<BigDecimal> params = new ArrayList<>();
+        final List<BigNumber> params = new ArrayList<>();
         for (LazyNumber lazyParam : lazyParams)
         {
             params.add(lazyParam.eval());
@@ -36,9 +35,9 @@ public abstract class Function extends LazyFunction
      * Implementation for this function.
      *
      * @param parameters Parameters will be passed by the expression evaluator as a
-     *                   {@link List} of {@link BigDecimal} values.
-     * @return The function must return a new {@link BigDecimal} value as a
+     *                   {@link List} of {@link BigNumber} values.
+     * @return The function must return a new {@link BigNumber} value as a
      * computing result.
      */
-    public abstract BigDecimal eval (List<BigDecimal> parameters);
+    public abstract BigNumber eval (List<BigNumber> parameters);
 }
