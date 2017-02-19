@@ -25,11 +25,11 @@ If .v is followed by x->y then variable x is set to value y.
 
 Use .i to do iteration.
 
-.i accepts 3 or 4 arguments separated by comma. First 2 args are upper and lower level of iteration.
+.i accepts 3 or 4 arguments separated by semicolon. First 2 args are upper and lower level of iteration.
 
 The 3rd argument is either the term or the step width. If no step width is given it defaults to 1.
 _ is used as iteration variable. So the term must contain _ whereever the variable is needed.
 
-Example: .i1,2,0.1,sin(_) calculates 11 sine values from 1 to 2 step 0.1.
+Example: .i1;2;0.1,sin(_) calculates 11 sine values from 1 to 2 step 0.1.
 
 ... or type any term (that is evaluated immediately) - or .x to exit ...
