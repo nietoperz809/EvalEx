@@ -89,7 +89,7 @@ public class Expression
     /**
      * All defined variables with name and value.
      */
-    private final Map<String, BigDecimal> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    //private final Map<String, BigDecimal> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private final Map<String, BigDecimal> mainVars;
 
 //    public void addVariables (Map<String, BigDecimal> vars)
@@ -125,7 +125,6 @@ public class Expression
         this.history = hist;
         this.expression = expression;
 
-        variables.putAll(vars);
         mainVars = vars;
 
         String originalExpression = expression;
@@ -277,7 +276,7 @@ public class Expression
                     PitDecimal target = (PitDecimal)v1;
                     String s = target.getVarToken();
                     setVariable (s, v2);
-                    return BigDecimal.ONE;
+                    return v2;
                 }
                 throw new ExpressionException("LHS not variable");
             }
@@ -960,9 +959,9 @@ private Function addFunction (Function function)
                 LazyNumber number = () -> operators.get(token).eval(v2.eval(), v1.eval());
                 stack.push(number);
             }
-            else if (variables.containsKey(token))
+            else if (mainVars.containsKey(token))
             {
-                PitDecimal bd = new PitDecimal (variables.get(token).toString());
+                PitDecimal bd = new PitDecimal (mainVars.get(token).toString());
                 bd.setVarToken (token);
                 stack.push(() -> bd);
             }
@@ -990,7 +989,8 @@ private Function addFunction (Function function)
             }
             else
             {
-                stack.push(() -> new BigDecimal(token));
+                BigDecimal bd = new BigDecimal(token);
+                stack.push(() -> bd);   // blank constant
             }
         }
         return stack.pop().eval().stripTrailingZeros();
@@ -1056,7 +1056,7 @@ private Function addFunction (Function function)
                     outputQueue.add(token);
                 }
             }
-            else if (variables.containsKey(token))
+            else if (mainVars.containsKey(token))
             {
                 outputQueue.add(token);
             }
@@ -1065,9 +1065,12 @@ private Function addFunction (Function function)
                 stack.push(token);
                 lastFunction = token;
             }
-            else if (Character.isLetter(token.charAt(0)))
+            else if ((Character.isLetter(token.charAt(0)) || token.charAt(0)=='_')
+                    && !operators.containsKey(token))
             {
-                stack.push(token);
+                mainVars.put (token, BigDecimal.ZERO);   // create variable
+                outputQueue.add(token);
+                //stack.push(token);
             }
             else if (",".equals(token))
             {
@@ -1197,7 +1200,7 @@ private Function addFunction (Function function)
                 // pop the operator's 2 parameters and add the result
                 stack.set(stack.size() - 1, stack.peek() - 2 + 1);
             }
-            else if (variables.containsKey(token))
+            else if (mainVars.containsKey(token))
             {
                 stack.set(stack.size() - 1, stack.peek() + 1);
             }
@@ -1313,17 +1316,6 @@ private Function addFunction (Function function)
         this.varChars = chars;
         return this;
     }
-    /**
-     * Sets a variable value.
-     *
-     * @param variable The variable to set.
-     * @param value    The variable value.
-     * @return The expression, allows to chain methods.
-     */
-    public Expression with (String variable, BigDecimal value)
-    {
-        return setVariable(variable, value);
-    }
 
     /**
      * Sets a variable value.
@@ -1360,7 +1352,7 @@ private Function addFunction (Function function)
     {
         if (isNumber(value))
         {
-            variables.put(variable, new BigDecimal(value));
+            mainVars.put(variable, new BigDecimal(value));
         }
         else
         {
@@ -1433,7 +1425,7 @@ private LazyFunction addLazyFunction (LazyFunction function)
      */
     public Set<String> getDeclaredVariables ()
     {
-        return Collections.unmodifiableSet(variables.keySet());
+        return Collections.unmodifiableSet(mainVars.keySet());
     }
 
     /**
