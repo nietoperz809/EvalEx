@@ -160,12 +160,12 @@ public class Expression
 				 */
                 int signOf2 = v2.signum();
                 double dn1 = v1.doubleValue();
-                v2 = v2.multiply(new BigNumber(signOf2)); // n2 is now positive
+                v2 = v2.multiply(new BigNumber(signOf2, 0)); // n2 is now positive
                 BigNumber remainderOf2 = v2.remainder(BigNumber.ONE, MathContext.DECIMAL128);
                 BigNumber n2IntPart = v2.subtract(remainderOf2);
                 BigNumber intPow = v1.pow(n2IntPart.intValueExact());
                 BigNumber doublePow = new BigNumber(Math.pow(dn1,
-                        remainderOf2.doubleValue()));
+                        remainderOf2.doubleValue()), 0);
 
                 BigNumber result = intPow.multiply(doublePow);
                 if (signOf2 == -1)
@@ -282,7 +282,7 @@ public class Expression
             @Override
             public BigNumber eval (BigNumber v1, BigNumber v2)
             {
-                return new BigNumber(v1.longValue() | v2.longValue());
+                return new BigNumber(v1.longValue() | v2.longValue(), 0);
             }
         });
         addOperator(new Operator("and", 7, false,
@@ -291,7 +291,7 @@ public class Expression
             @Override
             public BigNumber eval (BigNumber v1, BigNumber v2)
             {
-                return new BigNumber(v1.longValue() & v2.longValue());
+                return new BigNumber(v1.longValue() & v2.longValue(), 0);
             }
         });
         addOperator(new Operator("xor", 7, false,
@@ -300,7 +300,7 @@ public class Expression
             @Override
             public BigNumber eval (BigNumber v1, BigNumber v2)
             {
-                return new BigNumber(v1.longValue() ^ v2.longValue());
+                return new BigNumber(v1.longValue() ^ v2.longValue(), 0);
             }
         });
 
@@ -311,7 +311,7 @@ public class Expression
             public BigNumber eval (BigNumber v1, BigNumber v2)
             {
                 BigInteger fact = MathTools.getFactorialUsingGammaApproximation(v1.intValue(), 100);
-                return new BigNumber(fact);
+                return new BigNumber(fact, BigInteger.ZERO);
             }
         });
 
@@ -331,7 +331,7 @@ public class Expression
                 {
                     bi = bi.flipBit(s);
                 }
-                return new BigNumber(bi);
+                return new BigNumber(bi, BigInteger.ZERO);
             }
         });
 
@@ -341,7 +341,7 @@ public class Expression
             @Override
             public BigNumber eval (BigNumber v1, BigNumber v2)
             {
-                return new BigNumber(v1.longValue() << v2.longValue());
+                return new BigNumber(v1.longValue() << v2.longValue(), 0);
             }
         });
 
@@ -351,7 +351,7 @@ public class Expression
             @Override
             public BigNumber eval (BigNumber v1, BigNumber v2)
             {
-                return new BigNumber(v1.longValue() >>> v2.longValue());
+                return new BigNumber(v1.longValue() >>> v2.longValue(), 0);
             }
         });
 
@@ -374,7 +374,7 @@ public class Expression
             {
                 double low = parameters.get(0).doubleValue();
                 double high = parameters.get(1).doubleValue();
-                return new BigNumber(low + Math.random() * (high - low));
+                return new BigNumber(low + Math.random() * (high - low), 0);
             }
         });
 
@@ -386,7 +386,7 @@ public class Expression
             @Override
             public BigNumber eval (List<BigNumber> parameters)
             {
-                return new BigNumber(mers.nextDouble());
+                return new BigNumber(mers.nextDouble(), 0);
             }
         });
 
@@ -399,7 +399,7 @@ public class Expression
                 int n = parameters.get(0).intValue();
                 int k = parameters.get(1).intValue();
                 double d = CombinatoricsUtils.binomialCoefficientDouble(n, k);
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("STIR", 2,
@@ -411,7 +411,7 @@ public class Expression
                 int n = parameters.get(0).intValue();
                 int k = parameters.get(1).intValue();
                 double d = CombinatoricsUtils.stirlingS2(n, k);
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
 
@@ -423,7 +423,7 @@ public class Expression
             {
                 double d = Math.sin(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("COS", 1,
@@ -434,7 +434,7 @@ public class Expression
             {
                 double d = Math.cos(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("TAN", 1,
@@ -445,7 +445,7 @@ public class Expression
             {
                 double d = Math.tan(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("ASIN", 1,
@@ -456,7 +456,7 @@ public class Expression
             {
                 double d = Math.asin(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("ACOS", 1,
@@ -467,7 +467,7 @@ public class Expression
             {
                 double d = Math.acos(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("ATAN", 1,
@@ -478,7 +478,7 @@ public class Expression
             {
                 double d = Math.atan(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("SINH", 1,
@@ -488,7 +488,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = Math.sinh(parameters.get(0).doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("COSH", 1,
@@ -498,7 +498,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = Math.cosh(parameters.get(0).doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("TANH", 1,
@@ -508,7 +508,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = Math.tanh(parameters.get(0).doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("RAD", 1,
@@ -518,7 +518,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = Math.toRadians(parameters.get(0).doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("DEG", 1,
@@ -528,7 +528,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = Math.toDegrees(parameters.get(0).doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("MAX", -1,
@@ -574,7 +574,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 return parameters.get(0).
-                        divide(new BigNumber(100), MathContext.DECIMAL128).
+                        divide(new BigNumber(100, 0), MathContext.DECIMAL128).
                         multiply(parameters.get(1));
             }
         });
@@ -586,7 +586,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 return parameters.get(0).
-                        multiply(new BigNumber(100)).
+                        multiply(new BigNumber(100, 0)).
                         divide(parameters.get(1), MathContext.DECIMAL128);
             }
         });
@@ -610,7 +610,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 BigNumber p = parameters.get(0);
-                return new BigNumber(2).pow(p.intValue()).subtract(BigNumber.ONE);
+                return new BigNumber(2, 0).pow(p.intValue()).subtract(BigNumber.ONE);
             }
         });
 
@@ -661,7 +661,7 @@ public class Expression
                     res = res.add(parameter);
                     num++;
                 }
-                return res.divide(new BigNumber(num), MathContext.DECIMAL128);
+                return res.divide(new BigNumber(num, 0), MathContext.DECIMAL128);
             }
         });
         addFunction(new Function("BYT", -1,
@@ -684,7 +684,7 @@ public class Expression
                     res = res.shiftLeft(8);
                     res = res.or(parameter.toBigInteger());
                 }
-                return new BigNumber(res);
+                return new BigNumber(res, BigInteger.ZERO);
             }
         });
         addFunction(new Function("GMEAN", -1,
@@ -705,7 +705,7 @@ public class Expression
                     num++;
                 }
                 res = res.abs();
-                return MathTools.nthRoot(num, res, new BigNumber(0.000000001));
+                return MathTools.nthRoot(num, res, new BigNumber(0.000000001, 0));
             }
         });
         addFunction(new Function("HMEAN", -1,
@@ -726,7 +726,7 @@ public class Expression
                     num++;
                 }
                 res = res.abs();
-                return new BigNumber(num).divide(res, MathContext.DECIMAL128);
+                return new BigNumber(num, 0).divide(res, MathContext.DECIMAL128);
             }
         });
 
@@ -745,7 +745,7 @@ public class Expression
                 {
                     arr[s] = parameters.get(s).doubleValue();
                 }
-                return new BigNumber(variance(arr));
+                return new BigNumber(variance(arr), 0);
             }
         });
 
@@ -755,7 +755,7 @@ public class Expression
             @Override
             public BigNumber eval (List<BigNumber> parameters)
             {
-                return new BigNumber(nextPrime(parameters.get(0).intValue()));
+                return new BigNumber(nextPrime(parameters.get(0).intValue()), 0);
             }
         });
 
@@ -768,7 +768,7 @@ public class Expression
                 BigInteger bi = parameters.get(0).toBigInteger();
                 String s = bi.toString(16);
                 s = new StringBuilder(s).reverse().toString();
-                return new BigNumber(new BigInteger(s, 16));
+                return new BigNumber(new BigInteger(s, 16), BigInteger.ZERO);
             }
         });
 
@@ -789,7 +789,7 @@ public class Expression
                     s = "00" + s;
                 }
                 s = MathTools.reverseHex(s);
-                return new BigNumber(new BigInteger(s, 16));
+                return new BigNumber(new BigInteger(s, 16), BigInteger.ZERO);
             }
         });
 
@@ -801,7 +801,7 @@ public class Expression
             {
                 double a = par.get(0).doubleValue();
                 double b = par.get(1).doubleValue();
-                return new BigNumber(Math.sqrt(a * a + b * b));
+                return new BigNumber(Math.sqrt(a * a + b * b), 0);
             }
         });
 
@@ -856,7 +856,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = Math.log(parameters.get(0).doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("LOG", 1,
@@ -866,7 +866,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = Math.log10(parameters.get(0).doubleValue());
-                return new BigNumber(d);
+                return new BigNumber(d, 0);
             }
         });
         addFunction(new Function("FLOOR", 1,
@@ -906,7 +906,7 @@ public class Expression
             public BigNumber eval (List<BigNumber> parameters)
             {
                 double d = parameters.get(0).doubleValue();
-                return new BigNumber(Math.sqrt(d));
+                return new BigNumber(Math.sqrt(d), 0);
             }
         });
     }
@@ -967,7 +967,7 @@ public class Expression
             }
             else if (mainVars.containsKey(token))
             {
-                PitDecimal bd = new PitDecimal(mainVars.get(token).toString());
+                PitDecimal bd = new PitDecimal(mainVars.get(token).toString(),"0");
                 bd.setVarToken(token);
                 stack.push(() -> bd);
             }
@@ -995,8 +995,20 @@ public class Expression
             }
             else
             {
-                BigNumber bd = new BigNumber(token);
-                stack.push(() -> bd);   // blank constant
+                BigNumber bd;
+                if (token.endsWith("i"))
+                {
+                    String str = token.substring(0, token.length()-1);
+                    if (str.isEmpty())
+                        str = "1";
+                    bd = new BigNumber("0", str);
+                }
+                else
+                {
+                    bd = new BigNumber(token, "0");
+                }
+                BigNumber finalBd = bd;
+                stack.push(() -> finalBd);   // blank constant
             }
         }
         return stack.pop().eval().stripTrailingZeros();
@@ -1280,7 +1292,10 @@ public class Expression
         {
             if (!Character.isDigit(ch) && ch != minusSign
                     && ch != decimalSeparator
-                    && ch != 'e' && ch != 'E' && ch != '+')
+                    && ch != 'e'
+                    && ch != 'i'
+                    && ch != 'E'
+                    && ch != '+')
             {
                 return false;
             }
@@ -1310,7 +1325,7 @@ public class Expression
     {
         if (isNumber(value))
         {
-            mainVars.put(variable, new BigNumber(value));
+            mainVars.put(variable, new BigNumber(value, "0"));
         }
         else
         {
@@ -1370,7 +1385,6 @@ public class Expression
      */
     private class Tokenizer implements Iterator<String>
     {
-
         /**
          * The original input expression.
          */
@@ -1415,12 +1429,17 @@ public class Expression
             }
             if (Character.isDigit(ch))
             {
-                while ((Character.isDigit(ch) || ch == decimalSeparator
-                        || ch == 'e' || ch == 'E'
+                while ((Character.isDigit(ch) 
+                        || ch == decimalSeparator
+                        || ch == 'e'
+                        || ch == 'i'
+                        || ch == 'E'
                         || (ch == minusSign && token.length() > 0
-                        && ('e' == token.charAt(token.length() - 1) || 'E' == token.charAt(token.length() - 1)))
+                        && ('e' == token.charAt(token.length() - 1)
+                        || 'E' == token.charAt(token.length() - 1)))
                         || (ch == '+' && token.length() > 0
-                        && ('e' == token.charAt(token.length() - 1) || 'E' == token.charAt(token.length() - 1)))
+                        && ('e' == token.charAt(token.length() - 1)
+                        || 'E' == token.charAt(token.length() - 1)))
                 ) && (pos < input.length()))
                 {
                     token.append(input.charAt(pos++));

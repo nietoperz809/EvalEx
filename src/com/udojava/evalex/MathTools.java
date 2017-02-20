@@ -10,7 +10,8 @@ import static org.apache.commons.math3.util.CombinatoricsUtils.factorialLog;
  */
 public class MathTools
 {
-    private static final BigNumber SQRT5 = new BigNumber("2.236067977499789805051477742381393909454345703125");
+    private static final BigNumber SQRT5 =
+            new BigNumber("2.236067977499789805051477742381393909454345703125","0");
 
     public static BigInteger getFactorialUsingGammaApproximation (
             int n, int precision)
@@ -30,14 +31,14 @@ public class MathTools
     {
         //get integer part of base
         BigNumber a = new BigNumber(
-                new BigNumber(exp).toBigInteger());
+                new BigNumber(exp,0).toBigInteger(),BigInteger.ZERO);
         // get fractional part of base
         double b = exp - a.doubleValue();
-        BigNumber aToExp = new BigNumber(base).pow(
+        BigNumber aToExp = new BigNumber(base,0).pow(
                 a.toBigIntegerExact().intValue(),
                 new MathContext(precision));
         //putting all together
-        BigNumber bToExp = new BigNumber(Math.pow(base, b));
+        BigNumber bToExp = new BigNumber(Math.pow(base, b),0);
         return aToExp.multiply(bToExp);
     }
 
@@ -52,14 +53,14 @@ public class MathTools
             return BigNumber.ZERO;
         }
         BigNumber xPrev = a;
-        BigNumber x = a.divide(new BigNumber(n), MathContext.DECIMAL128);  // starting "guessed" value...
+        BigNumber x = a.divide(new BigNumber(n,0), MathContext.DECIMAL128);  // starting "guessed" value...
         while (x.subtract(xPrev).abs().compareTo(p) > 0)
         {
             xPrev = x;
-            x = BigNumber.valueOf(n - 1.0)
+            x = BigNumber.valueOf(n - 1.0, 0)
                     .multiply(x)
                     .add(a.divide(x.pow(n - 1), MathContext.DECIMAL128))
-                    .divide(new BigNumber(n), MathContext.DECIMAL128);
+                    .divide(new BigNumber(n,0), MathContext.DECIMAL128);
         }
         return x;
     }
@@ -88,7 +89,7 @@ public class MathTools
         // two special cases
         if (number == 0 || number == 1)
         {
-            return new BigNumber(number);
+            return new BigNumber(number, 0);
         }
         // values for n = 0, 1, 2
         BigNumber first = BigNumber.ZERO;

@@ -7,9 +7,9 @@ class PitDecimal extends BigNumber
 {
     String varToken;
 
-    public PitDecimal (String val)
+    public PitDecimal (String val, String img)
     {
-        super(val);
+        super(val, img);
     }
 
     public void setVarToken (String varToken)
