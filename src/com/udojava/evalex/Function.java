@@ -23,7 +23,7 @@ public abstract class Function extends LazyFunction
 
     public LazyNumber lazyEval (List<LazyNumber> lazyParams)
     {
-        final List<BigNumber> params = new ArrayList<>();
+        final List<BigComplex> params = new ArrayList<>();
         for (LazyNumber lazyParam : lazyParams)
         {
             params.add(lazyParam.eval());
@@ -35,9 +35,9 @@ public abstract class Function extends LazyFunction
      * Implementation for this function.
      *
      * @param parameters Parameters will be passed by the expression evaluator as a
-     *                   {@link List} of {@link BigNumber} values.
-     * @return The function must return a new {@link BigNumber} value as a
+     *                   {@link List} of {@link BigComplex} values.
+     * @return The function must return a new {@link BigComplex} value as a
      * computing result.
      */
-    public abstract BigNumber eval (List<BigNumber> parameters);
+    public abstract BigComplex eval (List<BigComplex> parameters);
 }

@@ -5,5 +5,5 @@ package com.udojava.evalex;
  */
 interface LazyNumber
 {
-    BigNumber eval ();
+    BigComplex eval ();
 }

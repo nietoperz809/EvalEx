@@ -29,6 +29,7 @@ package com.udojava.evalex;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -53,7 +54,7 @@ public class Expression
      */
     private static final char minusSign = '-';
     /**
-     * The BigNumber representation of the left parenthesis,
+     * The BigComplex representation of the left parenthesis,
      * used for parsing varying numbers of function parameters.
      */
     private static final LazyNumber PARAMS_START = () -> null;
@@ -69,8 +70,8 @@ public class Expression
     /**
      * All defined variables with name and value.
      */
-    //private final Map<String, BigNumber> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    private final Map<String, BigNumber> mainVars;
+    //private final Map<String, BigComplex> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private Variables  mainVars;
 
     /**
      * The characters (other than letters and digits) allowed as the first character in a variable.
@@ -96,7 +97,7 @@ public class Expression
      * @param expression The expression. E.g. <code>"2.4*sin(3)/(2-4)"</code> or
      *                   <code>"sin(y)>0 & max(z, 3)>3"</code>
      */
-    public Expression (String expression, LinkedList<String> hist, Map<String, BigNumber> vars)
+    public Expression (String expression, LinkedList<String> hist, Variables vars)
     {
         this.history = hist;
         this.expression = expression;
@@ -107,7 +108,7 @@ public class Expression
                 "Addition")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
                 return v1.add(v2);
             }
@@ -116,7 +117,7 @@ public class Expression
                 "Subtraction")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
                 return v1.subtract(v2);
             }
@@ -125,7 +126,7 @@ public class Expression
                 "Real number multiplication")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
                 return v1.multiply(v2);
             }
@@ -134,7 +135,7 @@ public class Expression
                 "Real number division")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
                 return v1.divide(v2, MathContext.DECIMAL128);
             }
@@ -143,47 +144,33 @@ public class Expression
                 "Remainder of integer division")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return v1.remainder(v2, MathContext.DECIMAL128);
+                if (v1.imaginary.compareTo(BigDecimal.ZERO)==0 ||
+                        v2.imaginary.compareTo(BigDecimal.ZERO)==0)
+                    throw new ExpressionException("not allowed on complex numbers");
+                BigDecimal r = v1.remainder(v2);
+                return new BigComplex (r, BigDecimal.ZERO);
             }
         });
         addOperator(new Operator("^", 40, false,
                 "Exponentation. See: https://en.wikipedia.org/wiki/Exponentiation")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                /*-
-                 * Thanks to Gene Marin:
-				 * http://stackoverflow.com/questions/3579779/how-to-do-a-fractional-power-on-BigNumber-in-java
-				 */
-                int signOf2 = v2.signum();
-                double dn1 = v1.doubleValue();
-                v2 = v2.multiply(new BigNumber(signOf2, 0)); // n2 is now positive
-                BigNumber remainderOf2 = v2.remainder(BigNumber.ONE, MathContext.DECIMAL128);
-                BigNumber n2IntPart = v2.subtract(remainderOf2);
-                BigNumber intPow = v1.pow(n2IntPart.intValueExact());
-                BigNumber doublePow = new BigNumber(Math.pow(dn1,
-                        remainderOf2.doubleValue()), 0);
-
-                BigNumber result = intPow.multiply(doublePow);
-                if (signOf2 == -1)
-                {
-                    result = BigNumber.ONE.divide(result, MathContext.DECIMAL128);
-                }
-                return result;
+                return v1.pow(v2);
             }
         });
         addOperator(new Operator("&&", 4, false,
                 "Logical AND. Evaluates to 1 if both operands are not 0")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                boolean b1 = !v1.equals(BigNumber.ZERO);
-                boolean b2 = !v2.equals(BigNumber.ZERO);
-                return b1 && b2 ? BigNumber.ONE : BigNumber.ZERO;
+                boolean b1 = !v1.equals(BigComplex.ZERO);
+                boolean b2 = !v2.equals(BigComplex.ZERO);
+                return b1 && b2 ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
 
@@ -191,11 +178,11 @@ public class Expression
                 "Logical OR. Evaluates to 0 if both operands are 0")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                boolean b1 = !v1.equals(BigNumber.ZERO);
-                boolean b2 = !v2.equals(BigNumber.ZERO);
-                return b1 || b2 ? BigNumber.ONE : BigNumber.ZERO;
+                boolean b1 = !v1.equals(BigComplex.ZERO);
+                boolean b2 = !v2.equals(BigComplex.ZERO);
+                return b1 || b2 ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
 
@@ -203,9 +190,9 @@ public class Expression
                 "Greater than. See: See: https://en.wikipedia.org/wiki/Inequality_(mathematics)")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return v1.compareTo(v2) == 1 ? BigNumber.ONE : BigNumber.ZERO;
+                return v1.compareTo(v2) == 1 ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
 
@@ -213,9 +200,9 @@ public class Expression
                 "Greater or equal")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return v1.compareTo(v2) >= 0 ? BigNumber.ONE : BigNumber.ZERO;
+                return v1.compareTo(v2) >= 0 ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
 
@@ -223,10 +210,10 @@ public class Expression
                 "Less than. See: https://en.wikipedia.org/wiki/Inequality_(mathematics)")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return v1.compareTo(v2) == -1 ? BigNumber.ONE
-                        : BigNumber.ZERO;
+                return v1.compareTo(v2) == -1 ? BigComplex.ONE
+                        : BigComplex.ZERO;
             }
         });
 
@@ -234,9 +221,9 @@ public class Expression
                 "less or equal")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return v1.compareTo(v2) <= 0 ? BigNumber.ONE : BigNumber.ZERO;
+                return v1.compareTo(v2) <= 0 ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
 
@@ -244,7 +231,7 @@ public class Expression
                 "Set variable v to new value ")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
                 if (v1 instanceof PitDecimal)
                 {
@@ -261,9 +248,9 @@ public class Expression
                 "Equality")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return v1.compareTo(v2) == 0 ? BigNumber.ONE : BigNumber.ZERO;
+                return v1.compareTo(v2) == 0 ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
 
@@ -271,47 +258,58 @@ public class Expression
                 "Inequality. See: https://en.wikipedia.org/wiki/Inequality_(mathematics)")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return v1.compareTo(v2) != 0 ? BigNumber.ONE : BigNumber.ZERO;
+                return v1.compareTo(v2) != 0 ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
         addOperator(new Operator("or", 7, false,
                 "Bitwise OR. See: https://en.wikipedia.org/wiki/Logical_disjunction")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return new BigNumber(v1.longValue() | v2.longValue(), 0);
+                return new BigComplex(v1.longValue() | v2.longValue(), 0);
             }
         });
         addOperator(new Operator("and", 7, false,
                 "Bitwise AND. See: https://en.wikipedia.org/wiki/Logical_conjunction")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return new BigNumber(v1.longValue() & v2.longValue(), 0);
+                return new BigComplex(v1.longValue() & v2.longValue(), 0);
             }
         });
         addOperator(new Operator("xor", 7, false,
                 "Bitwise XOR, See: https://en.wikipedia.org/wiki/Exclusive_or")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return new BigNumber(v1.longValue() ^ v2.longValue(), 0);
+                return new BigComplex(v1.longValue() ^ v2.longValue(), 0);
             }
         });
 
         addOperator(new Operator("!", 50, true,
                 "Factorial. See https://en.wikipedia.org/wiki/Factorial")
         {
-            @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigInteger factorial(int n)
             {
-                BigInteger fact = MathTools.getFactorialUsingGammaApproximation(v1.intValue(), 100);
-                return new BigNumber(fact, BigInteger.ZERO);
+                BigInteger factorial = BigInteger.ONE;
+                for (int i = 1; i <= n; i++)
+                {
+                    factorial = factorial.multiply(BigInteger.valueOf(i));
+                }
+                return factorial;
+            }
+            @Override
+            public BigComplex eval (BigComplex v1, BigComplex v2)
+            {
+                if (v1.imaginary.compareTo(BigDecimal.ZERO)!=0)
+                    throw new ExpressionException("not defined for complex numbers");
+                BigInteger fact = factorial(v1.intValue());
+                return new BigComplex(fact, BigInteger.ZERO);
             }
         });
 
@@ -319,19 +317,19 @@ public class Expression
                 "Bitwise negation")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
                 BigInteger bi = v2.toBigInteger();
                 int c = bi.bitLength();
                 if (c == 0)
                 {
-                    return BigNumber.ONE;
+                    return BigComplex.ONE;
                 }
                 for (int s = 0; s < c; s++)
                 {
                     bi = bi.flipBit(s);
                 }
-                return new BigNumber(bi, BigInteger.ZERO);
+                return new BigComplex(bi, BigInteger.ZERO);
             }
         });
 
@@ -339,9 +337,9 @@ public class Expression
                 "Left Bit shift")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return new BigNumber(v1.longValue() << v2.longValue(), 0);
+                return new BigComplex(v1.longValue() << v2.longValue(), 0);
             }
         });
 
@@ -349,9 +347,9 @@ public class Expression
                 "Right bit shift")
         {
             @Override
-            public BigNumber eval (BigNumber v1, BigNumber v2)
+            public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                return new BigNumber(v1.longValue() >>> v2.longValue(), 0);
+                return new BigComplex(v1.longValue() >>> v2.longValue(), 0);
             }
         });
 
@@ -359,10 +357,10 @@ public class Expression
                 "evaluates to 0 if argument != 0")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                boolean zero = parameters.get(0).compareTo(BigNumber.ZERO) == 0;
-                return zero ? BigNumber.ONE : BigNumber.ZERO;
+                boolean zero = parameters.get(0).compareTo(BigComplex.ZERO) == 0;
+                return zero ? BigComplex.ONE : BigComplex.ZERO;
             }
         });
 
@@ -370,11 +368,11 @@ public class Expression
                 "Give random number in the range between first and second argument")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double low = parameters.get(0).doubleValue();
                 double high = parameters.get(1).doubleValue();
-                return new BigNumber(low + Math.random() * (high - low), 0);
+                return new BigComplex(low + Math.random() * (high - low), 0);
             }
         });
 
@@ -384,9 +382,9 @@ public class Expression
                 "Mersenne twister random generator")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                return new BigNumber(mers.nextDouble(), 0);
+                return new BigComplex(mers.nextDouble(), 0);
             }
         });
 
@@ -394,24 +392,24 @@ public class Expression
                 "Binomial Coefficient 'n choose k'")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 int n = parameters.get(0).intValue();
                 int k = parameters.get(1).intValue();
                 double d = CombinatoricsUtils.binomialCoefficientDouble(n, k);
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("STIR", 2,
                 "Stirling number of 2nd kind: http://mathworld.wolfram.com/StirlingNumberoftheSecondKind.html")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 int n = parameters.get(0).intValue();
                 int k = parameters.get(1).intValue();
                 double d = CombinatoricsUtils.stirlingS2(n, k);
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
 
@@ -419,130 +417,130 @@ public class Expression
                 "Sine function")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.sin(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("COS", 1,
                 "Cosine function")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.cos(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("TAN", 1,
                 "Tangent")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.tan(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("ASIN", 1,
                 "Reverse Sine")
         { // added by av
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.asin(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("ACOS", 1,
                 "Reverse Cosine")
         { // added by av
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.acos(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("ATAN", 1,
                 "Reverse Tangent")
         { // added by av
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.atan(parameters.get(0)
                         .doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("SINH", 1,
                 "Hyperbolic Sine")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.sinh(parameters.get(0).doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("COSH", 1,
                 "Hyperbolic Cosine")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.cosh(parameters.get(0).doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("TANH", 1,
                 "Hyperbolic Tangent")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.tanh(parameters.get(0).doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("RAD", 1,
                 "Transform degree to radian")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.toRadians(parameters.get(0).doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("DEG", 1,
                 "Transform radian to degree")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.toDegrees(parameters.get(0).doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("MAX", -1,
                 "Find the biggest value in a list")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MAX requires at least one parameter");
                 }
-                BigNumber max = null;
-                for (BigNumber parameter : parameters)
+                BigComplex max = null;
+                for (BigComplex parameter : parameters)
                 {
                     if (max == null || parameter.compareTo(max) > 0)
                     {
@@ -557,9 +555,9 @@ public class Expression
                 "Conditional: give param3 if param1 is 0, otherwise param2")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                if (parameters.get(0).compareTo(BigNumber.ZERO)==0)
+                if (parameters.get(0).compareTo(BigComplex.ZERO)==0)
                 {
                     return parameters.get(2);
                 }
@@ -571,10 +569,10 @@ public class Expression
                 "Get param1 percent of param2")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 return parameters.get(0).
-                        divide(new BigNumber(100, 0), MathContext.DECIMAL128).
+                        divide(new BigComplex(100, 0), MathContext.DECIMAL128).
                         multiply(parameters.get(1));
             }
         });
@@ -583,10 +581,10 @@ public class Expression
                 "How many percent is param1 of param2")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 return parameters.get(0).
-                        multiply(new BigNumber(100, 0)).
+                        multiply(new BigComplex(100, 0)).
                         divide(parameters.get(1), MathContext.DECIMAL128);
             }
         });
@@ -595,7 +593,7 @@ public class Expression
                 "Evaluate _history element")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 int i = parameters.get(0).intValue();
                 Expression ex = new Expression(history.get(i), history, mainVars);
@@ -607,19 +605,19 @@ public class Expression
                 "Calculate Mersenne Number")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                BigNumber p = parameters.get(0);
-                return new BigNumber(2, 0).pow(p.intValue()).subtract(BigNumber.ONE);
+                BigComplex p = parameters.get(0);
+                return new BigComplex(2, 0).pow(p).subtract(BigComplex.ONE);
             }
         });
 
         addFunction(new Function("GCD", 2,
                 "Find greatest common divisor of 2 values")
         {
-            private BigNumber GCD (BigNumber a, BigNumber b)
+            private BigDecimal GCD (BigDecimal a, BigDecimal b)
             {
-                if (b.compareTo(BigNumber.ZERO) == 0)
+                if (b.compareTo(BigComplex.ZERO) == 0)
                 {
                     return a;
                 }
@@ -627,9 +625,11 @@ public class Expression
             }
 
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                return GCD(parameters.get(0), parameters.get(1));
+                BigDecimal a = parameters.get(0);
+                BigDecimal b = parameters.get(1);
+                return new BigComplex(GCD(a,b), BigDecimal.ZERO);
             }
         });
         addFunction(new Function("LCM", 2,
@@ -638,7 +638,7 @@ public class Expression
             private final Function gcd = (Function) functions.get("GCD");
 
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 return parameters.get(0).multiply(parameters.get(1))
                         .divide(gcd.eval(parameters), MathContext.DECIMAL128);
@@ -648,34 +648,34 @@ public class Expression
                 "Arithmetic mean of a set of values")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MEAN requires at least one parameter");
                 }
-                BigNumber res = BigNumber.ZERO;
+                BigComplex res = BigComplex.ZERO;
                 int num = 0;
-                for (BigNumber parameter : parameters)
+                for (BigComplex parameter : parameters)
                 {
                     res = res.add(parameter);
                     num++;
                 }
-                return res.divide(new BigNumber(num, 0), MathContext.DECIMAL128);
+                return res.divide(new BigComplex(num, 0), MathContext.DECIMAL128);
             }
         });
         addFunction(new Function("BYT", -1,
                 "Value from sequence of bytes")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
-                    return BigNumber.ZERO;
+                    return BigComplex.ZERO;
                 }
                 BigInteger res = BigInteger.ZERO;
-                for (BigNumber parameter : parameters)
+                for (BigComplex parameter : parameters)
                 {
                     if (parameter.intValue() < 0 || parameter.intValue() > 255)
                     {
@@ -684,49 +684,61 @@ public class Expression
                     res = res.shiftLeft(8);
                     res = res.or(parameter.toBigInteger());
                 }
-                return new BigNumber(res, BigInteger.ZERO);
+                return new BigComplex(res, BigInteger.ZERO);
             }
         });
+        addFunction(new Function("ANG", 1,
+                "Angle phi of complex number in radians")
+        {
+            @Override
+            public BigComplex eval (List<BigComplex> parameters)
+            {
+                BigDecimal b = parameters.get(0).angle();
+                return new BigComplex (b, BigDecimal.ZERO);
+            }
+        });
+
         addFunction(new Function("GMEAN", -1,
                 "Geometric mean of a set of values")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MEAN requires at least one parameter");
                 }
-                BigNumber res = BigNumber.ONE;
+                BigComplex res = BigComplex.ONE;
                 int num = 0;
-                for (BigNumber parameter : parameters)
+                for (BigComplex parameter : parameters)
                 {
                     res = res.multiply(parameter);
                     num++;
                 }
-                res = res.abs();
-                return MathTools.nthRoot(num, res, new BigNumber(0.000000001, 0));
+                res = new BigComplex (res.abs(), BigDecimal.ZERO);
+                BigDecimal bd = MathTools.nthRoot(num, res, new BigComplex(0.000000001, 0));
+                return new BigComplex (bd, BigDecimal.ZERO);
             }
         });
         addFunction(new Function("HMEAN", -1,
                 "Harmonic mean of a set of values")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MEAN requires at least one parameter");
                 }
-                BigNumber res = BigNumber.ZERO;
+                BigComplex res = BigComplex.ZERO;
                 int num = 0;
-                for (BigNumber parameter : parameters)
+                for (BigComplex parameter : parameters)
                 {
-                    res = res.add(BigNumber.ONE.divide(parameter, MathContext.DECIMAL128));
+                    res = res.add(BigComplex.ONE.divide(parameter, MathContext.DECIMAL128));
                     num++;
                 }
-                res = res.abs();
-                return new BigNumber(num, 0).divide(res, MathContext.DECIMAL128);
+                res = new BigComplex(res.abs(), BigDecimal.ZERO);
+                return new BigComplex(num, 0).divide(res, MathContext.DECIMAL128);
             }
         });
 
@@ -734,7 +746,7 @@ public class Expression
                 "Variance of a set of values")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
@@ -745,7 +757,7 @@ public class Expression
                 {
                     arr[s] = parameters.get(s).doubleValue();
                 }
-                return new BigNumber(variance(arr), 0);
+                return new BigComplex(variance(arr), 0);
             }
         });
 
@@ -753,9 +765,9 @@ public class Expression
                 "Next prime number greater or equal the argument")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                return new BigNumber(nextPrime(parameters.get(0).intValue()), 0);
+                return new BigComplex(nextPrime(parameters.get(0).intValue()), 0);
             }
         });
 
@@ -763,12 +775,12 @@ public class Expression
                 "Swap nibbles")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 BigInteger bi = parameters.get(0).toBigInteger();
                 String s = bi.toString(16);
                 s = new StringBuilder(s).reverse().toString();
-                return new BigNumber(new BigInteger(s, 16), BigInteger.ZERO);
+                return new BigComplex(new BigInteger(s, 16), BigInteger.ZERO);
             }
         });
 
@@ -776,7 +788,7 @@ public class Expression
                 "Swap bytes")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 BigInteger bi = parameters.get(0).toBigInteger();
                 String s = bi.toString(16);
@@ -789,7 +801,7 @@ public class Expression
                     s = "00" + s;
                 }
                 s = MathTools.reverseHex(s);
-                return new BigNumber(new BigInteger(s, 16), BigInteger.ZERO);
+                return new BigComplex(new BigInteger(s, 16), BigInteger.ZERO);
             }
         });
 
@@ -797,11 +809,11 @@ public class Expression
                 "Pythagoras's result = sqrt(param1^2+param2^2) https://en.wikipedia.org/wiki/Pythagorean_theorem")
         {
             @Override
-            public BigNumber eval (List<BigNumber> par)
+            public BigComplex eval (List<BigComplex> par)
             {
                 double a = par.get(0).doubleValue();
                 double b = par.get(1).doubleValue();
-                return new BigNumber(Math.sqrt(a * a + b * b), 0);
+                return new BigComplex(Math.sqrt(a * a + b * b), 0);
             }
         });
 
@@ -811,7 +823,7 @@ public class Expression
             // --Commented out by Inspection (2/19/2017 7:46 PM):private final Operator exp = operators.get("^");
 
             @Override
-            public BigNumber eval (List<BigNumber> par)
+            public BigComplex eval (List<BigComplex> par)
             {
                 return MathTools.iterativeFibonacci(par.get(0).intValue());
             }
@@ -823,14 +835,14 @@ public class Expression
                 "Find the smallest in a list of values")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MIN requires at least one parameter");
                 }
-                BigNumber min = null;
-                for (BigNumber parameter : parameters)
+                BigComplex min = null;
+                for (BigComplex parameter : parameters)
                 {
                     if (min == null || parameter.compareTo(min) < 0)
                     {
@@ -844,38 +856,38 @@ public class Expression
                 "Get absolute value of a number")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                return parameters.get(0).abs();
+                return new BigComplex (parameters.get(0).abs(), BigDecimal.ZERO);
             }
         });
         addFunction(new Function("LN", 1,
                 "Logarithm base e of the argument")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.log(parameters.get(0).doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("LOG", 1,
                 "Logarithm base 10 of the argument")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
                 double d = Math.log10(parameters.get(0).doubleValue());
-                return new BigNumber(d, 0);
+                return new BigComplex(d, 0);
             }
         });
         addFunction(new Function("FLOOR", 1,
                 "Rounds DOWN to nearest Integer")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                BigNumber toRound = parameters.get(0);
+                BigComplex toRound = parameters.get(0);
                 return toRound.setScale(0, RoundingMode.FLOOR);
             }
         });
@@ -883,9 +895,9 @@ public class Expression
                 "Rounds UP to nearest Integer")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                BigNumber toRound = parameters.get(0);
+                BigComplex toRound = parameters.get(0);
                 return toRound.setScale(0, RoundingMode.CEILING);
             }
         });
@@ -893,9 +905,9 @@ public class Expression
                 "Rounds to nearest Integer")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                BigNumber toRound = parameters.get(0);
+                BigComplex toRound = parameters.get(0);
                 return toRound.setScale(0, RoundingMode.HALF_UP);
             }
         });
@@ -903,10 +915,15 @@ public class Expression
                 "Square root")
         {
             @Override
-            public BigNumber eval (List<BigNumber> parameters)
+            public BigComplex eval (List<BigComplex> parameters)
             {
-                double d = parameters.get(0).doubleValue();
-                return new BigNumber(Math.sqrt(d), 0);
+                BigComplex p = parameters.get(0);
+                if (p.imaginary.compareTo(BigDecimal.ZERO) == 0)
+                {
+                    double d = parameters.get(0).doubleValue();
+                    return new BigComplex(MathTools.sqrt(p), BigDecimal.ZERO);
+                }
+                return p.sqrt();
             }
         });
     }
@@ -930,7 +947,7 @@ public class Expression
      * @param value    The variable value.
      * @return The expression, allows to chain methods.
      */
-    private void setVariable (String variable, BigNumber value)
+    private void setVariable (String variable, BigComplex value)
     {
         mainVars.put(variable, value);
     }
@@ -952,7 +969,7 @@ public class Expression
      *
      * @return The result of the expression.
      */
-    public BigNumber eval ()
+    public BigComplex eval ()
     {
         Stack<LazyNumber> stack = new Stack<>();
 
@@ -965,9 +982,10 @@ public class Expression
                 LazyNumber number = () -> operators.get(token).eval(v2.eval(), v1.eval());
                 stack.push(number);
             }
-            else if (mainVars.containsKey(token))
+            else if (mainVars.getMap().containsKey(token))
             {
-                PitDecimal bd = new PitDecimal(mainVars.get(token).toString(),"0");
+                PitDecimal bd = new PitDecimal(mainVars.get(token),
+                        mainVars.get(token).imaginary);
                 bd.setVarToken(token);
                 stack.push(() -> bd);
             }
@@ -995,19 +1013,19 @@ public class Expression
             }
             else
             {
-                BigNumber bd;
+                BigComplex bd;
                 if (token.endsWith("i"))
                 {
                     String str = token.substring(0, token.length()-1);
                     if (str.isEmpty())
                         str = "1";
-                    bd = new BigNumber("0", str);
+                    bd = new BigComplex("0", str);
                 }
                 else
                 {
-                    bd = new BigNumber(token, "0");
+                    bd = new BigComplex(token, "0");
                 }
-                BigNumber finalBd = bd;
+                BigComplex finalBd = bd;
                 stack.push(() -> finalBd);   // blank constant
             }
         }
@@ -1086,7 +1104,7 @@ public class Expression
             else if ((Character.isLetter(token.charAt(0)) || token.charAt(0) == '_')
                     && !operators.containsKey(token))
             {
-                mainVars.put(token, BigNumber.ZERO);   // create variable
+                mainVars.put(token, BigComplex.ZERO);   // create variable
                 outputQueue.add(token);
                 //stack.push(token);
             }
@@ -1325,7 +1343,7 @@ public class Expression
     {
         if (isNumber(value))
         {
-            mainVars.put(variable, new BigNumber(value, "0"));
+            mainVars.put(variable, new BigComplex(value, "0"));
         }
         else
         {

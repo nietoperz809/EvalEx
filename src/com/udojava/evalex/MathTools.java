@@ -1,66 +1,68 @@
 package com.udojava.evalex;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.math.MathContext;
-
-import static org.apache.commons.math3.util.CombinatoricsUtils.factorialLog;
 
 /**
  * Created by Administrator on 1/28/2017.
  */
 public class MathTools
 {
-    private static final BigNumber SQRT5 =
-            new BigNumber("2.236067977499789805051477742381393909454345703125","0");
 
-    public static BigInteger getFactorialUsingGammaApproximation (
-            int n, int precision)
+    public static BigDecimal sqrt(BigDecimal value)
     {
-        if (n == 0 || n == 1)
-        {
-            return BigInteger.ONE;
-        }
-        return pow(
-                Math.E,
-                factorialLog(n),
-                precision)
-                .toBigInteger().add(BigInteger.ONE);
+        BigDecimal x = new BigDecimal(Math.sqrt(value.doubleValue()));
+        return x.add(new BigDecimal(value.subtract(x.multiply(x)).doubleValue() / (x.doubleValue() * 2.0)));
     }
 
-    public static BigNumber pow (double base, double exp, int precision)
-    {
-        //get integer part of base
-        BigNumber a = new BigNumber(
-                new BigNumber(exp,0).toBigInteger(),BigInteger.ZERO);
-        // get fractional part of base
-        double b = exp - a.doubleValue();
-        BigNumber aToExp = new BigNumber(base,0).pow(
-                a.toBigIntegerExact().intValue(),
-                new MathContext(precision));
-        //putting all together
-        BigNumber bToExp = new BigNumber(Math.pow(base, b),0);
-        return aToExp.multiply(bToExp);
-    }
+//    public static BigInteger getFactorialUsingGammaApproximation (
+//            int n, int precision)
+//    {
+//        if (n == 0 || n == 1)
+//        {
+//            return BigInteger.ONE;
+//        }
+//        return pow(
+//                Math.E,
+//                factorialLog(n),
+//                precision)
+//                .toBigInteger().add(BigInteger.ONE);
+//    }
 
-    public static BigNumber nthRoot (final int n, final BigNumber a, final BigNumber p)
+//    public static BigComplex pow (double base, double exp, int precision)
+//    {
+//        //get integer part of base
+//        BigComplex a = new BigComplex(
+//                new BigComplex(exp,0).toBigInteger(),BigInteger.ZERO);
+//        // get fractional part of base
+//        double b = exp - a.doubleValue();
+//        BigComplex aToExp = new BigComplex(base,0).pow(
+//                a.toBigIntegerExact().intValue(),
+//                new MathContext(precision));
+//        //putting all together
+//        BigComplex bToExp = new BigComplex(Math.pow(base, b),0);
+//        return aToExp.multiply(bToExp);
+//    }
+
+    public static BigDecimal nthRoot (final int n, final BigDecimal a, final BigDecimal p)
     {
-        if (a.compareTo(BigNumber.ZERO) < 0)
+        if (a.compareTo(BigComplex.ZERO) < 0)
         {
             throw new IllegalArgumentException("nth root can only be calculated for positive numbers");
         }
-        if (a.equals(BigNumber.ZERO))
+        if (a.equals(BigComplex.ZERO))
         {
-            return BigNumber.ZERO;
+            return BigComplex.ZERO;
         }
-        BigNumber xPrev = a;
-        BigNumber x = a.divide(new BigNumber(n,0), MathContext.DECIMAL128);  // starting "guessed" value...
+        BigDecimal xPrev = a;
+        BigDecimal x = a.divide(new BigComplex(n,0), MathContext.DECIMAL128);  // starting "guessed" value...
         while (x.subtract(xPrev).abs().compareTo(p) > 0)
         {
             xPrev = x;
-            x = BigNumber.valueOf(n - 1.0, 0)
+            x = BigComplex.valueOf(n - 1.0, 0)
                     .multiply(x)
                     .add(a.divide(x.pow(n - 1), MathContext.DECIMAL128))
-                    .divide(new BigNumber(n,0), MathContext.DECIMAL128);
+                    .divide(new BigComplex(n,0), MathContext.DECIMAL128);
         }
         return x;
     }
@@ -79,7 +81,7 @@ public class MathTools
         return new String(chars);
     }
 
-    public static BigNumber iterativeFibonacci (int number)
+    public static BigComplex iterativeFibonacci (int number)
     {
         // error condition
         if (number < 0)
@@ -89,12 +91,12 @@ public class MathTools
         // two special cases
         if (number == 0 || number == 1)
         {
-            return new BigNumber(number, 0);
+            return new BigComplex(number, 0);
         }
         // values for n = 0, 1, 2
-        BigNumber first = BigNumber.ZERO;
-        BigNumber second = BigNumber.ONE;
-        BigNumber third = first.add(second);
+        BigComplex first = BigComplex.ZERO;
+        BigComplex second = BigComplex.ONE;
+        BigComplex third = first.add(second);
         // calculate next value
         for (int i = 3; i <= number; i++)
         {
@@ -105,13 +107,13 @@ public class MathTools
         return third;
     }
 
-//    public static BigNumber approxFibonacci (int n)
+//    public static BigComplex approxFibonacci (int n)
 //    {
-////                BigNumber Phi = sqrt5.add(BigNumber.ONE).divide(new BigNumber(2), MathContext.DECIMAL128);
-////                BigNumber phi = Phi.subtract(BigNumber.ONE);
-////                BigNumber b1 = exp.eval(Phi, par.get(0));
-////                BigNumber b2 = exp.eval(phi, par.get(0));
-////                BigNumber r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
+////                BigComplex Phi = sqrt5.add(BigComplex.ONE).divide(new BigComplex(2), MathContext.DECIMAL128);
+////                BigComplex phi = Phi.subtract(BigComplex.ONE);
+////                BigComplex b1 = exp.eval(Phi, par.get(0));
+////                BigComplex b2 = exp.eval(phi, par.get(0));
+////                BigComplex r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
 ////                return r;
 //    }
 }
