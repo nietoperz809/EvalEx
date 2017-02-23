@@ -13,8 +13,8 @@ public class Variables
     public void put (String k, BigComplex v)
     {
         char c = k.charAt(0);
-        if (c=='x' || c=='o' || c== 'b')
-            throw new ExpressionException("not allowed variable name");
+        if (c=='x' || c=='o' || c== 'b' || c=='h')
+            throw new ExpressionException("not allowed as first char: "+c);
         _variables.put(k, v);
     }
 

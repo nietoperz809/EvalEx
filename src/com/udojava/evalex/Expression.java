@@ -146,9 +146,6 @@ public class Expression
             @Override
             public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                if (v1.imaginary.compareTo(BigDecimal.ZERO)==0 ||
-                        v2.imaginary.compareTo(BigDecimal.ZERO)==0)
-                    throw new ExpressionException("not allowed on complex numbers");
                 BigDecimal r = v1.remainder(v2);
                 return new BigComplex (r, BigDecimal.ZERO);
             }
@@ -306,8 +303,6 @@ public class Expression
             @Override
             public BigComplex eval (BigComplex v1, BigComplex v2)
             {
-                if (v1.imaginary.compareTo(BigDecimal.ZERO)!=0)
-                    throw new ExpressionException("not defined for complex numbers");
                 BigInteger fact = factorial(v1.intValue());
                 return new BigComplex(fact, BigInteger.ZERO);
             }
@@ -695,6 +690,38 @@ public class Expression
             {
                 BigDecimal b = parameters.get(0).angle();
                 return new BigComplex (b, BigDecimal.ZERO);
+            }
+        });
+
+        addFunction(new Function("IM", 1,
+                "Get imaginary part")
+        {
+            @Override
+            public BigComplex eval (List<BigComplex> parameters)
+            {
+                return new BigComplex(parameters.get(0).imaginary, BigDecimal.ZERO);
+            }
+        });
+
+        addFunction(new Function("RE", 1,
+                "Get real part")
+        {
+            @Override
+            public BigComplex eval (List<BigComplex> parameters)
+            {
+                return new BigComplex(parameters.get(0), BigDecimal.ZERO);
+            }
+        });
+
+        addFunction(new Function("POL", 2,
+                "Make complex number from polar coords. angle is first arg")
+        {
+            @Override
+            public BigComplex eval (List<BigComplex> parameters)
+            {
+                double angle = parameters.get(0).doubleValue();
+                double len = parameters.get(1).doubleValue();
+                return new BigComplex (len*Math.cos(angle), len*Math.sin(angle));
             }
         });
 

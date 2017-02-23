@@ -12,24 +12,13 @@ import java.math.RoundingMode;
  */
 public class BigComplex extends BigDecimal
 {
-    public BigComplex (String val, String img)
-    {
-        super(val);
-        imaginary = new BigDecimal(img);
-    }
+    public static final BigComplex ONE = new BigComplex(BigDecimal.ONE,
+            BigDecimal.ZERO);
+    public static final BigComplex ZERO = new BigComplex(BigDecimal.ZERO,
+            BigDecimal.ZERO);
+    public BigDecimal imaginary = BigDecimal.ZERO;
 
     public BigComplex (double val, double img)
-    {
-        super(val);
-        imaginary = new BigDecimal(img);
-    }
-
-    public BigComplex (BigDecimal re, BigDecimal img)
-    {
-        this (Double.toString(re.doubleValue()), Double.toString(img.doubleValue()));
-    }
-
-    public BigComplex (BigInteger val, BigInteger img)
     {
         super(val);
         imaginary = new BigDecimal(img);
@@ -46,73 +35,64 @@ public class BigComplex extends BigDecimal
 //    }
 //////////////////////////////////////////////////////////////
 
-    public BigComplex conjugate()
+    public BigComplex (BigDecimal re, BigDecimal img)
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
+        this(Double.toString(re.doubleValue()), Double.toString(img.doubleValue()));
+    }
+
+    public BigComplex (String val, String img)
+    {
+        super(val);
+        imaginary = new BigDecimal(img);
+    }
+
+    public BigComplex (BigInteger val, BigInteger img)
+    {
+        super(val);
+        imaginary = new BigDecimal(img);
+    }
+
+    static public BigComplex valueOf (double d, double i)
+    {
+        BigDecimal b = BigDecimal.valueOf(d);
+        BigDecimal c = BigDecimal.valueOf(i);
+        return new BigComplex(b, c);
+    }
+
+    public BigComplex conjugate ()
+    {
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
         c = c.conjugate();
-        return new BigComplex (c.getReal(), c.getImaginary());
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
-    public BigComplex invert()
+    public BigComplex invert ()
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
         c = c.reciprocal();
-        return new BigComplex (c.getReal(), c.getImaginary());
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
-    public BigComplex negate()
+    public BigComplex cos ()
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        c = c.negate();
-        return new BigComplex (c.getReal(), c.getImaginary());
-    }
-
-
-    public BigComplex cos()
-    {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
         c = c.cos();
-        return new BigComplex (c.getReal(), c.getImaginary());
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
-    public BigComplex sqrt()
+    public BigComplex sqrt ()
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
         c = c.sqrt();
-        return new BigComplex (c.getReal(), c.getImaginary());
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
     public BigComplex add (BigComplex n)
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        Complex d = new Complex (n.doubleValue(), n.imaginary.doubleValue());
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        Complex d = new Complex(n.doubleValue(), n.imaginary.doubleValue());
         c = c.add(d);
-        return new BigComplex (c.getReal(), c.getImaginary());
-    }
-
-    public BigComplex subtract (BigComplex n)
-    {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        Complex d = new Complex (n.doubleValue(), n.imaginary.doubleValue());
-        c = c.subtract(d);
-        return new BigComplex (c.getReal(), c.getImaginary());
-    }
-
-    // (a+bi)(c+di) = (ac−bd) + (ad+bc)i
-    public BigComplex multiply (BigComplex n)
-    {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        Complex d = new Complex (n.doubleValue(), n.imaginary.doubleValue());
-        c = c.multiply(d);
-        return new BigComplex (c.getReal(), c.getImaginary());
-    }
-
-    public BigComplex divide (BigComplex n, MathContext m)
-    {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        Complex d = new Complex (n.doubleValue(), n.imaginary.doubleValue());
-        c = c.divide(d);
-        return new BigComplex (c.getReal(), c.getImaginary());
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
 //    public BigComplex nthRoot(int n)
@@ -131,19 +111,21 @@ public class BigComplex extends BigDecimal
 //        return new BigComplex (c.getReal(), c.getImaginary());
 //    }
 
-    public BigComplex pow (BigComplex n)
+    public BigComplex subtract (BigComplex n)
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        Complex d = new Complex (n.doubleValue(), n.imaginary.doubleValue());
-        c = c.pow(d);
-        return new BigComplex (c.getReal(), c.getImaginary());
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        Complex d = new Complex(n.doubleValue(), n.imaginary.doubleValue());
+        c = c.subtract(d);
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
-    public BigDecimal angle ()
+    // (a+bi)(c+di) = (ac−bd) + (ad+bc)i
+    public BigComplex multiply (BigComplex n)
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        double d = c.getArgument();
-        return new BigDecimal (d);
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        Complex d = new Complex(n.doubleValue(), n.imaginary.doubleValue());
+        c = c.multiply(d);
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
 //    public BigComplex pow (int n, MathContext m)
@@ -152,10 +134,40 @@ public class BigComplex extends BigDecimal
 //        return new BigComplex(b, BigDecimal.ZERO);
 //    }
 
+    public BigComplex divide (BigComplex n, MathContext m)
+    {
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        Complex d = new Complex(n.doubleValue(), n.imaginary.doubleValue());
+        c = c.divide(d);
+        return new BigComplex(c.getReal(), c.getImaginary());
+    }
+
+    public BigComplex pow (BigComplex n)
+    {
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        Complex d = new Complex(n.doubleValue(), n.imaginary.doubleValue());
+        c = c.pow(d);
+        return new BigComplex(c.getReal(), c.getImaginary());
+    }
+
+    public BigDecimal angle ()
+    {
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        double d = c.getArgument();
+        return new BigDecimal(d);
+    }
+
     public BigDecimal abs ()
     {
-        Complex c = new Complex (this.doubleValue(), imaginary.doubleValue());
-        return new BigDecimal (c.abs());
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        return new BigDecimal(c.abs());
+    }
+
+    public BigComplex negate ()
+    {
+        Complex c = new Complex(this.doubleValue(), imaginary.doubleValue());
+        c = c.negate();
+        return new BigComplex(c.getReal(), c.getImaginary());
     }
 
     public BigComplex setScale (int s, RoundingMode r)
@@ -172,39 +184,41 @@ public class BigComplex extends BigDecimal
         return new BigComplex(b, c);
     }
 
-    public String toStringComplex()
+    public String toStringComplex ()
     {
-        if (imaginary.compareTo(BigComplex.ZERO)==0)
-            return toString();
-        else
-            return toString()+"+"+imaginary.toString()+"i";
+        StringBuilder sb = new StringBuilder();
+        if (this.doubleValue() != 0.0 || imaginary.doubleValue() == 0.0)
+            sb.append(toString());
+        if (imaginary.doubleValue() > 0.0)
+        {
+            sb.append("+").append(imaginary.toString()).append("i");
+        }
+        else if (imaginary.doubleValue() < 0.0)
+        {
+            sb.append(imaginary.toString()).append("i");
+        }
+        return sb.toString();
     }
 
-    public String toPlainStringComplex()
+    public String toPlainStringComplex ()
     {
-        if (imaginary.compareTo(BigComplex.ZERO)==0)
-            return toPlainString();
-        else
-            return toPlainString()+"+"+imaginary.toPlainString()+"i";
+        StringBuilder sb = new StringBuilder();
+        if (this.doubleValue() != 0.0 || imaginary.doubleValue() == 0.0)
+            sb.append(toPlainString());
+        if (imaginary.doubleValue() > 0.0)
+        {
+            sb.append("+").append(imaginary.toPlainString()).append("i");
+        }
+        else if (imaginary.doubleValue() < 0.0)
+        {
+            sb.append(imaginary.toPlainString()).append("i");
+        }
+        return sb.toString();
     }
 
-    public BigDecimal norm()
+    public BigDecimal norm ()
     {
         return super.multiply(this)
                 .add(imaginary.multiply(imaginary));
     }
-
-    static public BigComplex valueOf (double d, double i)
-    {
-        BigDecimal b = BigDecimal.valueOf(d);
-        BigDecimal c = BigDecimal.valueOf(i);
-        return new BigComplex(b, c);
-    }
-
-    public static final BigComplex ONE = new BigComplex(BigDecimal.ONE,
-            BigDecimal.ZERO);
-    public static final BigComplex ZERO = new BigComplex(BigDecimal.ZERO,
-            BigDecimal.ZERO);
-
-    public BigDecimal imaginary = BigDecimal.ZERO;
 }
