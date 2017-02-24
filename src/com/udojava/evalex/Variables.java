@@ -8,9 +8,9 @@ import java.util.TreeMap;
  */
 public class Variables
 {
-    private static TreeMap<String, BigComplex> _variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private static TreeMap<String, MyComplex> _variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    public void put (String k, BigComplex v)
+    public void put (String k, MyComplex v)
     {
         char c = k.charAt(0);
         if (c=='x' || c=='o' || c== 'b' || c=='h')
@@ -28,12 +28,12 @@ public class Variables
         return _variables.containsKey(k);
     }
 
-    public BigComplex get (String k)
+    public MyComplex get (String k)
     {
         return _variables.get(k);
     }
 
-    public void setMap (TreeMap<String, BigComplex> m)
+    public void setMap (TreeMap<String, MyComplex> m)
     {
         _variables = m;
     }

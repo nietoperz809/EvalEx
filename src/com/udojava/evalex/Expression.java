@@ -29,10 +29,8 @@ package com.udojava.evalex;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.*;
 
 import static org.apache.commons.math3.primes.Primes.nextPrime;
@@ -54,7 +52,7 @@ public class Expression
      */
     private static final char minusSign = '-';
     /**
-     * The BigComplex representation of the left parenthesis,
+     * The MyComplex representation of the left parenthesis,
      * used for parsing varying numbers of function parameters.
      */
     private static final LazyNumber PARAMS_START = () -> null;
@@ -70,7 +68,7 @@ public class Expression
     /**
      * All defined variables with name and value.
      */
-    //private final Map<String, BigComplex> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    //private final Map<String, MyComplex> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     private Variables  mainVars;
 
     /**
@@ -108,7 +106,7 @@ public class Expression
                 "Addition")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 return v1.add(v2);
             }
@@ -117,7 +115,7 @@ public class Expression
                 "Subtraction")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 return v1.subtract(v2);
             }
@@ -126,7 +124,7 @@ public class Expression
                 "Real number multiplication")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 return v1.multiply(v2);
             }
@@ -135,7 +133,7 @@ public class Expression
                 "Real number division")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 return v1.divide(v2, MathContext.DECIMAL128);
             }
@@ -144,17 +142,17 @@ public class Expression
                 "Remainder of integer division")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                BigDecimal r = v1.remainder(v2);
-                return new BigComplex (r, BigDecimal.ZERO);
+                double r = v1.real % v2.real;
+                return new MyComplex(r, 0);
             }
         });
         addOperator(new Operator("^", 40, false,
                 "Exponentation. See: https://en.wikipedia.org/wiki/Exponentiation")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 return v1.pow(v2);
             }
@@ -163,11 +161,10 @@ public class Expression
                 "Logical AND. Evaluates to 1 if both operands are not 0")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                boolean b1 = !v1.equals(BigComplex.ZERO);
-                boolean b2 = !v2.equals(BigComplex.ZERO);
-                return b1 && b2 ? BigComplex.ONE : BigComplex.ZERO;
+                boolean b1 = (v1.real == 0.0 && v2.real == 0.0);
+                return new MyComplex(b1?1:0, 0);
             }
         });
 
@@ -175,11 +172,10 @@ public class Expression
                 "Logical OR. Evaluates to 0 if both operands are 0")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                boolean b1 = !v1.equals(BigComplex.ZERO);
-                boolean b2 = !v2.equals(BigComplex.ZERO);
-                return b1 || b2 ? BigComplex.ONE : BigComplex.ZERO;
+                boolean b1 = (v1.real == 0.0 && v2.real == 0.0);
+                return new MyComplex(b1?0:1, 0);
             }
         });
 
@@ -187,9 +183,16 @@ public class Expression
                 "Greater than. See: See: https://en.wikipedia.org/wiki/Inequality_(mathematics)")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return v1.compareTo(v2) == 1 ? BigComplex.ONE : BigComplex.ZERO;
+                if (v1.type == ValueType.REAL && v2.type == ValueType.REAL)
+                {
+                    return new MyComplex(v1.real>v2.real?1:0);
+                }
+                else
+                {
+                    return new MyComplex (v1.abs()>v2.abs()?1:0, 0);
+                }
             }
         });
 
@@ -197,9 +200,16 @@ public class Expression
                 "Greater or equal")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return v1.compareTo(v2) >= 0 ? BigComplex.ONE : BigComplex.ZERO;
+                if (v1.type == ValueType.REAL && v2.type == ValueType.REAL)
+                {
+                    return new MyComplex(v1.real>=v2.real?1:0);
+                }
+                else
+                {
+                    return new MyComplex (v1.abs()>=v2.abs()?1:0, 0);
+                }
             }
         });
 
@@ -207,10 +217,16 @@ public class Expression
                 "Less than. See: https://en.wikipedia.org/wiki/Inequality_(mathematics)")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return v1.compareTo(v2) == -1 ? BigComplex.ONE
-                        : BigComplex.ZERO;
+                if (v1.type == ValueType.REAL && v2.type == ValueType.REAL)
+                {
+                    return new MyComplex(v1.real<v2.real?1:0);
+                }
+                else
+                {
+                    return new MyComplex (v1.abs()<v2.abs()?1:0, 0);
+                }
             }
         });
 
@@ -218,9 +234,16 @@ public class Expression
                 "less or equal")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return v1.compareTo(v2) <= 0 ? BigComplex.ONE : BigComplex.ZERO;
+                if (v1.type == ValueType.REAL && v2.type == ValueType.REAL)
+                {
+                    return new MyComplex(v1.real<=v2.real?1:0);
+                }
+                else
+                {
+                    return new MyComplex (v1.abs()<=v2.abs()?1:0, 0);
+                }
             }
         });
 
@@ -228,7 +251,7 @@ public class Expression
                 "Set variable v to new value ")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 if (v1 instanceof PitDecimal)
                 {
@@ -245,9 +268,16 @@ public class Expression
                 "Equality")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return v1.compareTo(v2) == 0 ? BigComplex.ONE : BigComplex.ZERO;
+                if (v1.type == ValueType.REAL && v2.type == ValueType.REAL)
+                {
+                    return new MyComplex(v1.real==v2.real?1:0);
+                }
+                else
+                {
+                    return new MyComplex (v1.abs()==v2.abs()?1:0, 0);
+                }
             }
         });
 
@@ -255,56 +285,63 @@ public class Expression
                 "Inequality. See: https://en.wikipedia.org/wiki/Inequality_(mathematics)")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return v1.compareTo(v2) != 0 ? BigComplex.ONE : BigComplex.ZERO;
+                if (v1.type == ValueType.REAL && v2.type == ValueType.REAL)
+                {
+                    return new MyComplex(v1.real!=v2.real?1:0);
+                }
+                else
+                {
+                    return new MyComplex (v1.abs()!=v2.abs()?1:0, 0);
+                }
             }
         });
         addOperator(new Operator("or", 7, false,
                 "Bitwise OR. See: https://en.wikipedia.org/wiki/Logical_disjunction")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new BigComplex(v1.longValue() | v2.longValue(), 0);
+                return new MyComplex((long)v1.real | (long)v2.real, 0);
             }
         });
         addOperator(new Operator("and", 7, false,
                 "Bitwise AND. See: https://en.wikipedia.org/wiki/Logical_conjunction")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new BigComplex(v1.longValue() & v2.longValue(), 0);
+                return new MyComplex((long)v1.real & (long)v2.real, 0);
             }
         });
         addOperator(new Operator("xor", 7, false,
                 "Bitwise XOR, See: https://en.wikipedia.org/wiki/Exclusive_or")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new BigComplex(v1.longValue() ^ v2.longValue(), 0);
+                return new MyComplex((long)v1.real ^ (long)v2.real, 0);
             }
         });
 
         addOperator(new Operator("!", 50, true,
                 "Factorial. See https://en.wikipedia.org/wiki/Factorial")
         {
-            public BigInteger factorial(int n)
+            public BigInteger factorial(long n)
             {
                 BigInteger factorial = BigInteger.ONE;
-                for (int i = 1; i <= n; i++)
+                for (long i = 1; i <= n; i++)
                 {
                     factorial = factorial.multiply(BigInteger.valueOf(i));
                 }
                 return factorial;
             }
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                BigInteger fact = factorial(v1.intValue());
-                return new BigComplex(fact, BigInteger.ZERO);
+                BigInteger fact = factorial((long)v1.real);
+                return new MyComplex(fact, BigInteger.ZERO);
             }
         });
 
@@ -312,19 +349,19 @@ public class Expression
                 "Bitwise negation")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                BigInteger bi = v2.toBigInteger();
+                BigInteger bi = v2.toBigIntegerReal();
                 int c = bi.bitLength();
                 if (c == 0)
                 {
-                    return BigComplex.ONE;
+                    return new MyComplex(1,0);
                 }
                 for (int s = 0; s < c; s++)
                 {
                     bi = bi.flipBit(s);
                 }
-                return new BigComplex(bi, BigInteger.ZERO);
+                return new MyComplex(bi, BigInteger.ZERO);
             }
         });
 
@@ -332,9 +369,9 @@ public class Expression
                 "Left Bit shift")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new BigComplex(v1.longValue() << v2.longValue(), 0);
+                return new MyComplex((long)v1.real << (long)v2.real, 0);
             }
         });
 
@@ -342,9 +379,9 @@ public class Expression
                 "Right bit shift")
         {
             @Override
-            public BigComplex eval (BigComplex v1, BigComplex v2)
+            public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new BigComplex(v1.longValue() >>> v2.longValue(), 0);
+                return new MyComplex((long)v1.real >>> (long)v2.real, 0);
             }
         });
 
@@ -352,10 +389,10 @@ public class Expression
                 "evaluates to 0 if argument != 0")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                boolean zero = parameters.get(0).compareTo(BigComplex.ZERO) == 0;
-                return zero ? BigComplex.ONE : BigComplex.ZERO;
+                boolean zero = parameters.get(0).abs() == 0;
+                return new MyComplex (zero?1:0, 0);
             }
         });
 
@@ -363,11 +400,11 @@ public class Expression
                 "Give random number in the range between first and second argument")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double low = parameters.get(0).doubleValue();
-                double high = parameters.get(1).doubleValue();
-                return new BigComplex(low + Math.random() * (high - low), 0);
+                double low = parameters.get(0).real;
+                double high = parameters.get(1).real;
+                return new MyComplex(low + Math.random() * (high - low), 0);
             }
         });
 
@@ -377,9 +414,9 @@ public class Expression
                 "Mersenne twister random generator")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                return new BigComplex(mers.nextDouble(), 0);
+                return new MyComplex(mers.nextDouble(), 0);
             }
         });
 
@@ -387,24 +424,24 @@ public class Expression
                 "Binomial Coefficient 'n choose k'")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                int n = parameters.get(0).intValue();
-                int k = parameters.get(1).intValue();
+                int n = (int)parameters.get(0).real;
+                int k = (int)parameters.get(1).real;
                 double d = CombinatoricsUtils.binomialCoefficientDouble(n, k);
-                return new BigComplex(d, 0);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("STIR", 2,
                 "Stirling number of 2nd kind: http://mathworld.wolfram.com/StirlingNumberoftheSecondKind.html")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                int n = parameters.get(0).intValue();
-                int k = parameters.get(1).intValue();
+                int n = (int)parameters.get(0).real;
+                int k = (int)parameters.get(1).real;
                 double d = CombinatoricsUtils.stirlingS2(n, k);
-                return new BigComplex(d, 0);
+                return new MyComplex(d, 0);
             }
         });
 
@@ -412,137 +449,139 @@ public class Expression
                 "Sine function")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.sin(parameters.get(0)
-                        .doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).sin();
             }
         });
         addFunction(new Function("COS", 1,
                 "Cosine function")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.cos(parameters.get(0)
-                        .doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).cos();
             }
         });
         addFunction(new Function("TAN", 1,
                 "Tangent")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.tan(parameters.get(0)
-                        .doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).tan();
             }
         });
         addFunction(new Function("ASIN", 1,
                 "Reverse Sine")
         { // added by av
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.asin(parameters.get(0)
-                        .doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).asin();
             }
         });
         addFunction(new Function("ACOS", 1,
                 "Reverse Cosine")
         { // added by av
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.acos(parameters.get(0)
-                        .doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).acos();
             }
         });
         addFunction(new Function("ATAN", 1,
                 "Reverse Tangent")
         { // added by av
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.atan(parameters.get(0)
-                        .doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).atan();
             }
         });
         addFunction(new Function("SINH", 1,
                 "Hyperbolic Sine")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.sinh(parameters.get(0).doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).sinh();
             }
         });
         addFunction(new Function("COSH", 1,
                 "Hyperbolic Cosine")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.cosh(parameters.get(0).doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).cosh();
             }
         });
         addFunction(new Function("TANH", 1,
                 "Hyperbolic Tangent")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.tanh(parameters.get(0).doubleValue());
-                return new BigComplex(d, 0);
+                return parameters.get(0).tanh();
             }
         });
         addFunction(new Function("RAD", 1,
                 "Transform degree to radian")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.toRadians(parameters.get(0).doubleValue());
-                return new BigComplex(d, 0);
+                double d = Math.toRadians(parameters.get(0).real);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("DEG", 1,
                 "Transform radian to degree")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.toDegrees(parameters.get(0).doubleValue());
-                return new BigComplex(d, 0);
+                double d = Math.toDegrees(parameters.get(0).real);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("MAX", -1,
                 "Find the biggest value in a list")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
+                MyComplex save = new MyComplex (Double.MIN_VALUE, 0);
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MAX requires at least one parameter");
                 }
-                BigComplex max = null;
-                for (BigComplex parameter : parameters)
+//                if (parameters.get(0).type == ValueType.ARRAY)
+//                    parameters = parameters.get(0).list;
+                if (parameters.get(0).type == ValueType.COMPLEX)
                 {
-                    if (max == null || parameter.compareTo(max) > 0)
+                    for (MyComplex parameter : parameters)
                     {
-                        max = parameter;
+                        if (parameter.abs() > save.abs())
+                        {
+                            save = parameter;
+                        }
                     }
+                    save.type = ValueType.COMPLEX;
                 }
-                return max;
+                else
+                {
+                    for (MyComplex parameter : parameters)
+                    {
+                        if (parameter.real > save.real)
+                        {
+                            save = parameter;
+                        }
+                    }
+                    save.type = ValueType.REAL;
+                }
+                return save;
             }
         });
 ///////////////////////////////////////////////////////
@@ -550,9 +589,9 @@ public class Expression
                 "Conditional: give param3 if param1 is 0, otherwise param2")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                if (parameters.get(0).compareTo(BigComplex.ZERO)==0)
+                if (parameters.get(0).real == 0.0)
                 {
                     return parameters.get(2);
                 }
@@ -564,10 +603,10 @@ public class Expression
                 "Get param1 percent of param2")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
                 return parameters.get(0).
-                        divide(new BigComplex(100, 0), MathContext.DECIMAL128).
+                        divide(new MyComplex(100, 0), MathContext.DECIMAL128).
                         multiply(parameters.get(1));
             }
         });
@@ -576,10 +615,10 @@ public class Expression
                 "How many percent is param1 of param2")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
                 return parameters.get(0).
-                        multiply(new BigComplex(100, 0)).
+                        multiply(new MyComplex(100, 0)).
                         divide(parameters.get(1), MathContext.DECIMAL128);
             }
         });
@@ -588,9 +627,9 @@ public class Expression
                 "Evaluate _history element")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                int i = parameters.get(0).intValue();
+                int i = (int)parameters.get(0).real;
                 Expression ex = new Expression(history.get(i), history, mainVars);
                 return ex.eval();
             }
@@ -600,31 +639,31 @@ public class Expression
                 "Calculate Mersenne Number")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigComplex p = parameters.get(0);
-                return new BigComplex(2, 0).pow(p).subtract(BigComplex.ONE);
+                MyComplex p = parameters.get(0);
+                return new MyComplex(2, 0).pow(p).subtract(new MyComplex(1,0));
             }
         });
 
         addFunction(new Function("GCD", 2,
                 "Find greatest common divisor of 2 values")
         {
-            private BigDecimal GCD (BigDecimal a, BigDecimal b)
+            private double GCD (double a, double b)
             {
-                if (b.compareTo(BigComplex.ZERO) == 0)
+                if (b  == 0.0)
                 {
                     return a;
                 }
-                return GCD(b, a.remainder(b, MathContext.DECIMAL128));
+                return GCD(b, a % b );
             }
 
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigDecimal a = parameters.get(0);
-                BigDecimal b = parameters.get(1);
-                return new BigComplex(GCD(a,b), BigDecimal.ZERO);
+                double a = parameters.get(0).real;
+                double b = parameters.get(1).real;
+                return new MyComplex(GCD(a,b), 0);
             }
         });
         addFunction(new Function("LCM", 2,
@@ -633,7 +672,7 @@ public class Expression
             private final Function gcd = (Function) functions.get("GCD");
 
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
                 return parameters.get(0).multiply(parameters.get(1))
                         .divide(gcd.eval(parameters), MathContext.DECIMAL128);
@@ -643,53 +682,53 @@ public class Expression
                 "Arithmetic mean of a set of values")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MEAN requires at least one parameter");
                 }
-                BigComplex res = BigComplex.ZERO;
+                MyComplex res = new MyComplex (0,0);
                 int num = 0;
-                for (BigComplex parameter : parameters)
+                for (MyComplex parameter : parameters)
                 {
                     res = res.add(parameter);
                     num++;
                 }
-                return res.divide(new BigComplex(num, 0), MathContext.DECIMAL128);
+                return res.divide(new MyComplex(num, 0), MathContext.DECIMAL128);
             }
         });
-        addFunction(new Function("BYT", -1,
-                "Value from sequence of bytes")
-        {
-            @Override
-            public BigComplex eval (List<BigComplex> parameters)
-            {
-                if (parameters.size() == 0)
-                {
-                    return BigComplex.ZERO;
-                }
-                BigInteger res = BigInteger.ZERO;
-                for (BigComplex parameter : parameters)
-                {
-                    if (parameter.intValue() < 0 || parameter.intValue() > 255)
-                    {
-                        throw new ExpressionException("not a byte value");
-                    }
-                    res = res.shiftLeft(8);
-                    res = res.or(parameter.toBigInteger());
-                }
-                return new BigComplex(res, BigInteger.ZERO);
-            }
-        });
+//        addFunction(new Function("BYT", -1,
+//                "Value from sequence of bytes")
+//        {
+//            @Override
+//            public MyComplex eval (List<MyComplex> parameters)
+//            {
+//                if (parameters.size() == 0)
+//                {
+//                    return MyComplex.ZERO;
+//                }
+//                BigInteger res = BigInteger.ZERO;
+//                for (MyComplex parameter : parameters)
+//                {
+//                    if (parameter.intValue() < 0 || parameter.intValue() > 255)
+//                    {
+//                        throw new ExpressionException("not a byte value");
+//                    }
+//                    res = res.shiftLeft(8);
+//                    res = res.or(parameter.toBigInteger());
+//                }
+//                return new MyComplex(res, BigInteger.ZERO);
+//            }
+//        });
         addFunction(new Function("ANG", 1,
                 "Angle phi of complex number in radians")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigDecimal b = parameters.get(0).angle();
-                return new BigComplex (b, BigDecimal.ZERO);
+                double b = parameters.get(0).angle();
+                return new MyComplex(b, 0);
             }
         });
 
@@ -697,9 +736,9 @@ public class Expression
                 "Get imaginary part")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                return new BigComplex(parameters.get(0).imaginary, BigDecimal.ZERO);
+                return new MyComplex(parameters.get(0).imaginary);
             }
         });
 
@@ -707,9 +746,9 @@ public class Expression
                 "Get real part")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                return new BigComplex(parameters.get(0), BigDecimal.ZERO);
+                return new MyComplex(parameters.get(0).real);
             }
         });
 
@@ -717,55 +756,55 @@ public class Expression
                 "Make complex number from polar coords. angle is first arg")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double angle = parameters.get(0).doubleValue();
-                double len = parameters.get(1).doubleValue();
-                return new BigComplex (len*Math.cos(angle), len*Math.sin(angle));
+                double angle = parameters.get(0).real;
+                double len = parameters.get(1).real;
+                return new MyComplex(len*Math.cos(angle), len*Math.sin(angle));
             }
         });
 
-        addFunction(new Function("GMEAN", -1,
-                "Geometric mean of a set of values")
-        {
-            @Override
-            public BigComplex eval (List<BigComplex> parameters)
-            {
-                if (parameters.size() == 0)
-                {
-                    throw new ExpressionException("MEAN requires at least one parameter");
-                }
-                BigComplex res = BigComplex.ONE;
-                int num = 0;
-                for (BigComplex parameter : parameters)
-                {
-                    res = res.multiply(parameter);
-                    num++;
-                }
-                res = new BigComplex (res.abs(), BigDecimal.ZERO);
-                BigDecimal bd = MathTools.nthRoot(num, res, new BigComplex(0.000000001, 0));
-                return new BigComplex (bd, BigDecimal.ZERO);
-            }
-        });
+//        addFunction(new Function("GMEAN", -1,
+//                "Geometric mean of a set of values")
+//        {
+//            @Override
+//            public MyComplex eval (List<MyComplex> parameters)
+//            {
+//                if (parameters.size() == 0)
+//                {
+//                    throw new ExpressionException("MEAN requires at least one parameter");
+//                }
+//                MyComplex res = MyComplex.ONE;
+//                int num = 0;
+//                for (MyComplex parameter : parameters)
+//                {
+//                    res = res.multiply(parameter);
+//                    num++;
+//                }
+//                res = new MyComplex (res.abs(), 0);
+//                BigDecimal bd = MathTools.nthRoot(num, res, new MyComplex(0.000000001, 0));
+//                return new MyComplex (bd, 0);
+//            }
+//        });
         addFunction(new Function("HMEAN", -1,
                 "Harmonic mean of a set of values")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MEAN requires at least one parameter");
                 }
-                BigComplex res = BigComplex.ZERO;
+                MyComplex res = new MyComplex(0,0);
                 int num = 0;
-                for (BigComplex parameter : parameters)
+                for (MyComplex parameter : parameters)
                 {
-                    res = res.add(BigComplex.ONE.divide(parameter, MathContext.DECIMAL128));
+                    res = res.add(new MyComplex(1,0).divide(parameter, MathContext.DECIMAL128));
                     num++;
                 }
-                res = new BigComplex(res.abs(), BigDecimal.ZERO);
-                return new BigComplex(num, 0).divide(res, MathContext.DECIMAL128);
+                res = new MyComplex(res.abs(), 0);
+                return new MyComplex(num, 0).divide(res, MathContext.DECIMAL128);
             }
         });
 
@@ -773,7 +812,7 @@ public class Expression
                 "Variance of a set of values")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
                 if (parameters.size() == 0)
                 {
@@ -782,9 +821,9 @@ public class Expression
                 double[] arr = new double[parameters.size()];
                 for (int s = 0; s < parameters.size(); s++)
                 {
-                    arr[s] = parameters.get(s).doubleValue();
+                    arr[s] = parameters.get(s).real;
                 }
-                return new BigComplex(variance(arr), 0);
+                return new MyComplex(variance(arr), 0);
             }
         });
 
@@ -792,9 +831,9 @@ public class Expression
                 "Next prime number greater or equal the argument")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                return new BigComplex(nextPrime(parameters.get(0).intValue()), 0);
+                return new MyComplex(nextPrime((int)parameters.get(0).real), 0);
             }
         });
 
@@ -802,12 +841,12 @@ public class Expression
                 "Swap nibbles")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigInteger bi = parameters.get(0).toBigInteger();
+                BigInteger bi = parameters.get(0).toBigIntegerReal();
                 String s = bi.toString(16);
                 s = new StringBuilder(s).reverse().toString();
-                return new BigComplex(new BigInteger(s, 16), BigInteger.ZERO);
+                return new MyComplex(new BigInteger(s, 16), BigInteger.ZERO);
             }
         });
 
@@ -815,9 +854,9 @@ public class Expression
                 "Swap bytes")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigInteger bi = parameters.get(0).toBigInteger();
+                BigInteger bi = parameters.get(0).toBigIntegerReal();
                 String s = bi.toString(16);
                 while (s.length() % 4 != 0)
                 {
@@ -828,7 +867,7 @@ public class Expression
                     s = "00" + s;
                 }
                 s = MathTools.reverseHex(s);
-                return new BigComplex(new BigInteger(s, 16), BigInteger.ZERO);
+                return new MyComplex(new BigInteger(s, 16), BigInteger.ZERO);
             }
         });
 
@@ -836,11 +875,11 @@ public class Expression
                 "Pythagoras's result = sqrt(param1^2+param2^2) https://en.wikipedia.org/wiki/Pythagorean_theorem")
         {
             @Override
-            public BigComplex eval (List<BigComplex> par)
+            public MyComplex eval (List<MyComplex> par)
             {
-                double a = par.get(0).doubleValue();
-                double b = par.get(1).doubleValue();
-                return new BigComplex(Math.sqrt(a * a + b * b), 0);
+                double a = par.get(0).real;
+                double b = par.get(1).real;
+                return new MyComplex(Math.sqrt(a * a + b * b), 0);
             }
         });
 
@@ -850,9 +889,9 @@ public class Expression
             // --Commented out by Inspection (2/19/2017 7:46 PM):private final Operator exp = operators.get("^");
 
             @Override
-            public BigComplex eval (List<BigComplex> par)
+            public MyComplex eval (List<MyComplex> par)
             {
-                return MathTools.iterativeFibonacci(par.get(0).intValue());
+                return MathTools.iterativeFibonacci((int)par.get(0).real);
             }
         });
 
@@ -862,95 +901,118 @@ public class Expression
                 "Find the smallest in a list of values")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
+                MyComplex save = new MyComplex (Double.MAX_VALUE, 0);
                 if (parameters.size() == 0)
                 {
-                    throw new ExpressionException("MIN requires at least one parameter");
+                    throw new ExpressionException("MAX requires at least one parameter");
                 }
-                BigComplex min = null;
-                for (BigComplex parameter : parameters)
+                if (parameters.get(0).type == ValueType.COMPLEX)
                 {
-                    if (min == null || parameter.compareTo(min) < 0)
+                    for (MyComplex parameter : parameters)
                     {
-                        min = parameter;
+                        if (parameter.abs() < save.abs())
+                        {
+                            save = parameter;
+                        }
                     }
+                    save.type = ValueType.COMPLEX;
                 }
-                return min;
+                else
+                {
+                    for (MyComplex parameter : parameters)
+                    {
+                        if (parameter.real < save.real)
+                        {
+                            save = parameter;
+                        }
+                    }
+                    save.type = ValueType.REAL;
+                }
+                return save;
             }
         });
         addFunction(new Function("ABS", 1,
                 "Get absolute value of a number")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                return new BigComplex (parameters.get(0).abs(), BigDecimal.ZERO);
+                return new MyComplex(parameters.get(0).abs(), 0);
             }
         });
         addFunction(new Function("LN", 1,
                 "Logarithm base e of the argument")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.log(parameters.get(0).doubleValue());
-                return new BigComplex(d, 0);
+                double d = Math.log(parameters.get(0).real);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("LOG", 1,
                 "Logarithm base 10 of the argument")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                double d = Math.log10(parameters.get(0).doubleValue());
-                return new BigComplex(d, 0);
+                double d = Math.log10(parameters.get(0).real);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("FLOOR", 1,
                 "Rounds DOWN to nearest Integer")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigComplex toRound = parameters.get(0);
-                return toRound.setScale(0, RoundingMode.FLOOR);
+                double d = Math.floor(parameters.get(0).real);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("CEIL", 1,
                 "Rounds UP to nearest Integer")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigComplex toRound = parameters.get(0);
-                return toRound.setScale(0, RoundingMode.CEILING);
+                double d = Math.ceil(parameters.get(0).real);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("ROU", 1,
                 "Rounds to nearest Integer")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigComplex toRound = parameters.get(0);
-                return toRound.setScale(0, RoundingMode.HALF_UP);
+                int d = (int)(parameters.get(0).real+0.5);
+                return new MyComplex(d, 0);
             }
         });
         addFunction(new Function("SQRT", 1,
                 "Square root")
         {
             @Override
-            public BigComplex eval (List<BigComplex> parameters)
+            public MyComplex eval (List<MyComplex> parameters)
             {
-                BigComplex p = parameters.get(0);
-                if (p.imaginary.compareTo(BigDecimal.ZERO) == 0)
+                MyComplex p = parameters.get(0);
+                if (p.type == ValueType.REAL)
                 {
-                    double d = parameters.get(0).doubleValue();
-                    return new BigComplex(MathTools.sqrt(p), BigDecimal.ZERO);
+                    return new MyComplex(Math.sqrt(p.real));
                 }
                 return p.sqrt();
+            }
+        });
+        addFunction(new Function("ARR", -1,
+                "Create array")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                return new MyComplex(parameters);
             }
         });
     }
@@ -974,7 +1036,7 @@ public class Expression
      * @param value    The variable value.
      * @return The expression, allows to chain methods.
      */
-    private void setVariable (String variable, BigComplex value)
+    private void setVariable (String variable, MyComplex value)
     {
         mainVars.put(variable, value);
     }
@@ -996,7 +1058,7 @@ public class Expression
      *
      * @return The result of the expression.
      */
-    public BigComplex eval ()
+    public MyComplex eval ()
     {
         Stack<LazyNumber> stack = new Stack<>();
 
@@ -1011,10 +1073,18 @@ public class Expression
             }
             else if (mainVars.getMap().containsKey(token))
             {
-                PitDecimal bd = new PitDecimal(mainVars.get(token),
-                        mainVars.get(token).imaginary);
-                bd.setVarToken(token);
-                stack.push(() -> bd);
+                MyComplex v = mainVars.get(token);
+                if (v.type == ValueType.ARRAY)
+                {
+                    stack.push(()->v);
+                }
+                else
+                {
+                    PitDecimal bd = new PitDecimal(v.real, v.imaginary);
+                    bd.type = v.type;
+                    bd.setVarToken(token);
+                    stack.push(() -> bd);
+                }
             }
             else if (functions.containsKey(token.toUpperCase(Locale.ROOT)))
             {
@@ -1040,23 +1110,23 @@ public class Expression
             }
             else
             {
-                BigComplex bd;
+                MyComplex bd;
                 if (token.endsWith("i"))
                 {
                     String str = token.substring(0, token.length()-1);
                     if (str.isEmpty())
                         str = "1";
-                    bd = new BigComplex("0", str);
+                    bd = new MyComplex("0", str);
                 }
                 else
                 {
-                    bd = new BigComplex(token, "0");
+                    bd = new MyComplex(token);
                 }
-                BigComplex finalBd = bd;
+                MyComplex finalBd = bd;
                 stack.push(() -> finalBd);   // blank constant
             }
         }
-        return stack.pop().eval().stripTrailingZeros();
+        return stack.pop().eval();
     }
 
     /*
@@ -1131,7 +1201,7 @@ public class Expression
             else if ((Character.isLetter(token.charAt(0)) || token.charAt(0) == '_')
                     && !operators.containsKey(token))
             {
-                mainVars.put(token, BigComplex.ZERO);   // create variable
+                mainVars.put(token, new MyComplex(0,0));   // create variable
                 outputQueue.add(token);
                 //stack.push(token);
             }
@@ -1370,7 +1440,7 @@ public class Expression
     {
         if (isNumber(value))
         {
-            mainVars.put(variable, new BigComplex(value, "0"));
+            mainVars.put(variable, new MyComplex(value, "0"));
         }
         else
         {

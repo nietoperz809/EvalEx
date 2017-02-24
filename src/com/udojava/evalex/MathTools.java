@@ -1,7 +1,6 @@
 package com.udojava.evalex;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 
 /**
  * Created by Administrator on 1/28/2017.
@@ -29,43 +28,43 @@ public class MathTools
 //                .toBigInteger().add(BigInteger.ONE);
 //    }
 
-//    public static BigComplex pow (double base, double exp, int precision)
+//    public static MyComplex pow (double base, double exp, int precision)
 //    {
 //        //get integer part of base
-//        BigComplex a = new BigComplex(
-//                new BigComplex(exp,0).toBigInteger(),BigInteger.ZERO);
+//        MyComplex a = new MyComplex(
+//                new MyComplex(exp,0).toBigInteger(),BigInteger.ZERO);
 //        // get fractional part of base
 //        double b = exp - a.doubleValue();
-//        BigComplex aToExp = new BigComplex(base,0).pow(
+//        MyComplex aToExp = new MyComplex(base,0).pow(
 //                a.toBigIntegerExact().intValue(),
 //                new MathContext(precision));
 //        //putting all together
-//        BigComplex bToExp = new BigComplex(Math.pow(base, b),0);
+//        MyComplex bToExp = new MyComplex(Math.pow(base, b),0);
 //        return aToExp.multiply(bToExp);
 //    }
 
-    public static BigDecimal nthRoot (final int n, final BigDecimal a, final BigDecimal p)
-    {
-        if (a.compareTo(BigComplex.ZERO) < 0)
-        {
-            throw new IllegalArgumentException("nth root can only be calculated for positive numbers");
-        }
-        if (a.equals(BigComplex.ZERO))
-        {
-            return BigComplex.ZERO;
-        }
-        BigDecimal xPrev = a;
-        BigDecimal x = a.divide(new BigComplex(n,0), MathContext.DECIMAL128);  // starting "guessed" value...
-        while (x.subtract(xPrev).abs().compareTo(p) > 0)
-        {
-            xPrev = x;
-            x = BigComplex.valueOf(n - 1.0, 0)
-                    .multiply(x)
-                    .add(a.divide(x.pow(n - 1), MathContext.DECIMAL128))
-                    .divide(new BigComplex(n,0), MathContext.DECIMAL128);
-        }
-        return x;
-    }
+//    public static BigDecimal nthRoot (final int n, final BigDecimal a, final BigDecimal p)
+//    {
+//        if (a.compareTo(Big.ZERO) < 0)
+//        {
+//            throw new IllegalArgumentException("nth root can only be calculated for positive numbers");
+//        }
+//        if (a.equals(MyComplex.ZERO))
+//        {
+//            return MyComplex.ZERO;
+//        }
+//        BigDecimal xPrev = a;
+//        BigDecimal x = a.divide(new MyComplex(n,0), MathContext.DECIMAL128);  // starting "guessed" value...
+//        while (x.subtract(xPrev).abs().compareTo(p) > 0)
+//        {
+//            xPrev = x;
+//            x = MyComplex.valueOf(n - 1.0, 0)
+//                    .multiply(x)
+//                    .add(a.divide(x.pow(n - 1), MathContext.DECIMAL128))
+//                    .divide(new MyComplex(n,0), MathContext.DECIMAL128);
+//        }
+//        return x;
+//    }
 
     public static String reverseHex (String originalHex)
     {
@@ -81,7 +80,7 @@ public class MathTools
         return new String(chars);
     }
 
-    public static BigComplex iterativeFibonacci (int number)
+    public static MyComplex iterativeFibonacci (int number)
     {
         // error condition
         if (number < 0)
@@ -91,12 +90,12 @@ public class MathTools
         // two special cases
         if (number == 0 || number == 1)
         {
-            return new BigComplex(number, 0);
+            return new MyComplex(number, 0);
         }
         // values for n = 0, 1, 2
-        BigComplex first = BigComplex.ZERO;
-        BigComplex second = BigComplex.ONE;
-        BigComplex third = first.add(second);
+        MyComplex first = new MyComplex(0,0);
+        MyComplex second = new MyComplex(1,0);
+        MyComplex third = first.add(second);
         // calculate next value
         for (int i = 3; i <= number; i++)
         {
@@ -107,13 +106,13 @@ public class MathTools
         return third;
     }
 
-//    public static BigComplex approxFibonacci (int n)
+//    public static MyComplex approxFibonacci (int n)
 //    {
-////                BigComplex Phi = sqrt5.add(BigComplex.ONE).divide(new BigComplex(2), MathContext.DECIMAL128);
-////                BigComplex phi = Phi.subtract(BigComplex.ONE);
-////                BigComplex b1 = exp.eval(Phi, par.get(0));
-////                BigComplex b2 = exp.eval(phi, par.get(0));
-////                BigComplex r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
+////                MyComplex Phi = sqrt5.add(MyComplex.ONE).divide(new MyComplex(2), MathContext.DECIMAL128);
+////                MyComplex phi = Phi.subtract(MyComplex.ONE);
+////                MyComplex b1 = exp.eval(Phi, par.get(0));
+////                MyComplex b2 = exp.eval(phi, par.get(0));
+////                MyComplex r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
 ////                return r;
 //    }
 }

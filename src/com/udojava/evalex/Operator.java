@@ -53,5 +53,5 @@ public abstract class Operator extends Mathobject
      * @param v2 Operand 2.
      * @return The result of the operation.
      */
-    public abstract BigComplex eval (BigComplex v1, BigComplex v2);
+    public abstract MyComplex eval (MyComplex v1, MyComplex v2);
 }
