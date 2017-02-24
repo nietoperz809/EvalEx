@@ -108,15 +108,28 @@ public class Expression
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
+                if (v1.type == ValueType.ARRAY)
+                {
+                    MyComplex vo = new MyComplex(v1.list);
+                    vo.list.add(v2);
+                    return vo;
+                }
                 return v1.add(v2);
             }
         });
+
         addOperator(new Operator("-", 20, true,
                 "Subtraction")
         {
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
+                if (v1.type == ValueType.ARRAY)
+                {
+                    MyComplex vo = new MyComplex(v1.list);
+                    vo.list.removeIf(o -> o.equals(v2));
+                    return vo;
+                }
                 return v1.subtract(v2);
             }
         });

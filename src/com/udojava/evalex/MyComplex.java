@@ -1,8 +1,8 @@
 package com.udojava.evalex;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.math3.complex.Complex;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2/19/2017.
  */
-public class MyComplex //extends BigDecimal
+public class MyComplex
 {
     public double imaginary = 0.0;
     public double real = 0.0;
@@ -24,6 +24,19 @@ public class MyComplex //extends BigDecimal
         type = ValueType.ARRAY;
     }
 
+    public boolean equals (Object o)
+    {
+        MyComplex oo = (MyComplex)o;
+        if (type == ValueType.REAL)
+        {
+            return real == oo.real;
+        }
+        if (type == ValueType.COMPLEX)
+        {
+            return real == oo.real && imaginary == oo.imaginary;
+        }
+        return CollectionUtils.isEqualCollection(this.list, oo.list);
+    }
 
     public MyComplex (double val, double img)
     {
@@ -36,16 +49,6 @@ public class MyComplex //extends BigDecimal
     {
         real = val;
         type = ValueType.REAL;
-    }
-
-    public MyComplex (BigDecimal re, BigDecimal img)
-    {
-        this(Double.toString(re.doubleValue()), Double.toString(img.doubleValue()));
-    }
-
-    public MyComplex (BigDecimal re)
-    {
-        this(Double.toString(re.doubleValue()));
     }
 
     public MyComplex (String val, String img)
@@ -261,6 +264,11 @@ public class MyComplex //extends BigDecimal
         return new MyComplex(c.getReal(), c.getImaginary());
     }
 
+    private String fmt (Double d)
+    {
+        return d.longValue() == d ? "" + d.longValue() : "" + d;
+    }
+
     public String toStringComplex ()
     {
         StringBuilder sb = new StringBuilder();
@@ -277,14 +285,14 @@ public class MyComplex //extends BigDecimal
         else
         {
             if (real != 0.0 || imaginary == 0.0)
-                sb.append(Double.toString(real));
+                sb.append(fmt(real));
             if (imaginary > 0.0)
             {
-                sb.append("+").append(Double.toString(imaginary)).append("i");
+                sb.append("+").append(fmt(imaginary)).append("i");
             }
             else if (imaginary < 0.0)
             {
-                sb.append(Double.toString(imaginary)).append("i");
+                sb.append(fmt(imaginary)).append("i");
             }
         }
         return sb.toString();

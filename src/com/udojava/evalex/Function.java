@@ -28,7 +28,7 @@ public abstract class Function extends LazyFunction
         {
             params.add(lazyParam.eval());
         }
-        if (params.get(0).type == ValueType.ARRAY)
+        if (params.get(0).type == ValueType.ARRAY && getNumParams()==-1)
             params = params.get(0).list;
         List<MyComplex> finalParams = params;
         return () -> Function.this.eval(finalParams);

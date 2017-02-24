@@ -1,18 +1,16 @@
 package com.udojava.evalex;
 
-import java.math.BigDecimal;
-
 /**
  * Created by Administrator on 1/28/2017.
  */
 public class MathTools
 {
 
-    public static BigDecimal sqrt(BigDecimal value)
-    {
-        BigDecimal x = new BigDecimal(Math.sqrt(value.doubleValue()));
-        return x.add(new BigDecimal(value.subtract(x.multiply(x)).doubleValue() / (x.doubleValue() * 2.0)));
-    }
+//    public static BigDecimal sqrt(BigDecimal value)
+//    {
+//        BigDecimal x = new BigDecimal(Math.sqrt(value.doubleValue()));
+//        return x.add(new BigDecimal(value.subtract(x.multiply(x)).doubleValue() / (x.doubleValue() * 2.0)));
+//    }
 
 //    public static BigInteger getFactorialUsingGammaApproximation (
 //            int n, int precision)
