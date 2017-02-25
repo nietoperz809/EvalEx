@@ -27,10 +27,13 @@
 package com.udojava.evalex;
 
 import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.stat.descriptive.moment.GeometricMean;
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.math3.stat.descriptive.summary.Product;
+import org.apache.commons.math3.stat.descriptive.summary.Sum;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
 import java.math.BigInteger;
-import java.math.MathContext;
 import java.util.*;
 
 import static org.apache.commons.math3.primes.Primes.nextPrime;
@@ -148,7 +151,7 @@ public class Expression
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return v1.divide(v2, MathContext.DECIMAL128);
+                return v1.divide(v2);
             }
         });
         addOperator(new Operator("%", 30, true,
@@ -619,7 +622,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 return parameters.get(0).
-                        divide(new MyComplex(100, 0), MathContext.DECIMAL128).
+                        divide(new MyComplex(100)).
                         multiply(parameters.get(1));
             }
         });
@@ -631,8 +634,8 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 return parameters.get(0).
-                        multiply(new MyComplex(100, 0)).
-                        divide(parameters.get(1), MathContext.DECIMAL128);
+                        multiply(new MyComplex(100)).
+                        divide(parameters.get(1));
             }
         });
 
@@ -688,7 +691,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 return parameters.get(0).multiply(parameters.get(1))
-                        .divide(gcd.eval(parameters), MathContext.DECIMAL128);
+                        .divide(gcd.eval(parameters));
             }
         });
         addFunction(new Function("AMEAN", -1,
@@ -701,14 +704,10 @@ public class Expression
                 {
                     throw new ExpressionException("MEAN requires at least one parameter");
                 }
-                MyComplex res = new MyComplex (0,0);
-                int num = 0;
-                for (MyComplex parameter : parameters)
-                {
-                    res = res.add(parameter);
-                    num++;
-                }
-                return res.divide(new MyComplex(num, 0), MathContext.DECIMAL128);
+                Mean m = new Mean();
+                double[] d = MyComplex.getRealArray(parameters);
+                double d2 = m.evaluate(d);
+                return new MyComplex(d2);
             }
         });
 //        addFunction(new Function("BYT", -1,
@@ -734,6 +733,47 @@ public class Expression
 //                return new MyComplex(res, BigInteger.ZERO);
 //            }
 //        });
+        addFunction(new Function("SEQ", 3,
+                "Generate Sequence p1=start, p2=step, p3=count")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                double start = parameters.get(0).real;
+                ArrayList<MyComplex> arr = new ArrayList<>();
+                for (int s=0; s<(int)(parameters.get(2).real); s++)
+                {
+                    arr.add(new MyComplex(start));
+                    start += parameters.get(1).real;
+                }
+                return new MyComplex(arr);
+            }
+        });
+
+        addFunction(new Function("PROD", -1,
+                "Product of real values")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                Product p= new Product();
+                double[] d = MyComplex.getRealArray(parameters);
+                return new MyComplex(p.evaluate(d));
+            }
+        });
+
+        addFunction(new Function("SUM", -1,
+                "Sum of values")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                Sum p= new Sum();
+                double[] d = MyComplex.getRealArray(parameters);
+                return new MyComplex(p.evaluate(d));
+            }
+        });
+
         addFunction(new Function("ANG", 1,
                 "Angle phi of complex number in radians")
         {
@@ -777,28 +817,23 @@ public class Expression
             }
         });
 
-//        addFunction(new Function("GMEAN", -1,
-//                "Geometric mean of a set of values")
-//        {
-//            @Override
-//            public MyComplex eval (List<MyComplex> parameters)
-//            {
-//                if (parameters.size() == 0)
-//                {
-//                    throw new ExpressionException("MEAN requires at least one parameter");
-//                }
-//                MyComplex res = MyComplex.ONE;
-//                int num = 0;
-//                for (MyComplex parameter : parameters)
-//                {
-//                    res = res.multiply(parameter);
-//                    num++;
-//                }
-//                res = new MyComplex (res.abs(), 0);
-//                BigDecimal bd = MathTools.nthRoot(num, res, new MyComplex(0.000000001, 0));
-//                return new MyComplex (bd, 0);
-//            }
-//        });
+        addFunction(new Function("GMEAN", -1,
+                "Geometric mean of a set of values")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                if (parameters.size() == 0)
+                {
+                    throw new ExpressionException("MEAN requires at least one parameter");
+                }
+                GeometricMean m = new GeometricMean();
+                double[] d = MyComplex.getRealArray(parameters);
+                double d2 = m.evaluate(d);
+                return new MyComplex(d2);
+            }
+        });
+
         addFunction(new Function("HMEAN", -1,
                 "Harmonic mean of a set of values")
         {
@@ -813,15 +848,15 @@ public class Expression
                 int num = 0;
                 for (MyComplex parameter : parameters)
                 {
-                    res = res.add(new MyComplex(1,0).divide(parameter, MathContext.DECIMAL128));
+                    res = res.add(new MyComplex(1).divide(parameter));
                     num++;
                 }
-                res = new MyComplex(res.abs(), 0);
-                return new MyComplex(num, 0).divide(res, MathContext.DECIMAL128);
+                res = new MyComplex(res.abs());
+                return new MyComplex(num).divide(res);
             }
         });
 
-        addFunction(new Function("VAR", -1,
+         addFunction(new Function("VAR", -1,
                 "Variance of a set of values")
         {
             @Override

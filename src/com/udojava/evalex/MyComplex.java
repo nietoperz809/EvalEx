@@ -4,7 +4,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.math3.complex.Complex;
 
 import java.math.BigInteger;
-import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,70 +114,90 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.cos();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex sin ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.sin();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex tan ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.tan();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex acos ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.acos();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex asin ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.sin();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex atan ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.acos();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex sinh ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.sinh();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex cosh ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.cosh();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex tanh ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.tanh();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex sqrt ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.sqrt();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        m.type = type;
+        return m;
     }
 
     public MyComplex add (MyComplex n)
@@ -186,7 +205,10 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.add(d);
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        if (type == ValueType.REAL && n.type == ValueType.REAL)
+            m.type = ValueType.REAL;
+        return m;
     }
 
 //    public MyComplex nthRoot(int n)
@@ -210,7 +232,10 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.subtract(d);
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        if (type == ValueType.REAL && n.type == ValueType.REAL)
+            m.type = ValueType.REAL;
+        return m;
     }
 
     // (a+bi)(c+di) = (ac−bd) + (ad+bc)i
@@ -219,7 +244,10 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.multiply(d);
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        if (type == ValueType.REAL && n.type == ValueType.REAL)
+            m.type = ValueType.REAL;
+        return m;
     }
 
 //    public MyComplex pow (int n, MathContext m)
@@ -228,12 +256,15 @@ public class MyComplex
 //        return new MyComplex(b, BigDecimal.ZERO);
 //    }
 
-    public MyComplex divide (MyComplex n, MathContext m)
+    public MyComplex divide (MyComplex n)
     {
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.divide(d);
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        if (type == ValueType.REAL && n.type == ValueType.REAL)
+            m.type = ValueType.REAL;
+        return m;
     }
 
     public MyComplex pow (MyComplex n)
@@ -241,7 +272,10 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.pow(d);
-        return new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        if (type == ValueType.REAL && n.type == ValueType.REAL)
+            m.type = ValueType.REAL;
+        return m;
     }
 
     public double angle ()
@@ -302,6 +336,35 @@ public class MyComplex
     {
         return toStringComplex();
     }
+
+    public static double[] getRealArray (List<MyComplex>l)
+    {
+        double[] d = new double[l.size()];
+        for (int s=0; s<l.size(); s++)
+        {
+            d[s] = l.get(s).real;
+        }
+        return d;
+    }
+
+    public static List<MyComplex> listFromRealArray (double[] d)
+    {
+        ArrayList<MyComplex> l = new ArrayList<>();
+        for (int s=0; s<d.length; s++)
+        {
+            l.add (new MyComplex(d[s]));
+        }
+        return l;
+    }
+
+    public double[] getRealArray ()
+    {
+        if (type != ValueType.ARRAY)
+            throw new ExpressionException("must be array");
+        return getRealArray(list);
+    }
+
+
 
     public double norm ()
     {
