@@ -1,14 +1,15 @@
 package com.udojava.evalex;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
  * Created by Administrator on 2/21/2017.
  */
-public class Variables
+public class Variables implements Serializable
 {
-    private static TreeMap<String, MyComplex> _variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private TreeMap<String, MyComplex> _variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     public void put (String k, MyComplex v)
     {

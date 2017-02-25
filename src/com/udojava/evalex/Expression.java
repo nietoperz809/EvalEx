@@ -72,16 +72,8 @@ public class Expression
      * All defined variables with name and value.
      */
     //private final Map<String, MyComplex> variables = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    private Variables  mainVars;
+    private final Variables  mainVars;
 
-    /**
-     * The characters (other than letters and digits) allowed as the first character in a variable.
-     */
-    private String firstVarChars = "_";
-    /**
-     * The characters (other than letters and digits) allowed as the second or subsequent characters in a variable.
-     */
-    private String varChars = "_";
     /**
      * The current infix expression, with optional variable substitutions.
      */
@@ -1477,27 +1469,29 @@ public class Expression
     }
 
 
-    /**
-     * Sets a variable value.
-     *
-     * @param variable The variable to set.
-     * @param value    The variable value.
-     * @return The expression, allows to chain methods.
-     */
-    private Expression setVariable (String variable, String value)
-    {
-        if (isNumber(value))
-        {
-            mainVars.put(variable, new MyComplex(value, "0"));
-        }
-        else
-        {
-            expression = expression.replaceAll("(?i)\\b" + variable + "\\b", "("
-                    + value + ")");
-            rpn = null;
-        }
-        return this;
-    }
+// --Commented out by Inspection START (2/25/2017 11:54 AM):
+//    /**
+//     * Sets a variable value.
+//     *
+//     * @param variable The variable to set.
+//     * @param value    The variable value.
+//     * @return The expression, allows to chain methods.
+//     */
+//    private Expression setVariable (String variable, String value)
+//    {
+//        if (isNumber(value))
+//        {
+//            mainVars.put(variable, new MyComplex(value, "0"));
+//        }
+//        else
+//        {
+//            expression = expression.replaceAll("(?i)\\b" + variable + "\\b", "("
+//                    + value + ")");
+//            rpn = null;
+//        }
+//        return this;
+//    }
+// --Commented out by Inspection STOP (2/25/2017 11:54 AM)
 
     /**
      * {@inheritDoc}
@@ -1590,6 +1584,10 @@ public class Expression
             {
                 ch = input.charAt(++pos);
             }
+            /*
+      The characters (other than letters and digits) allowed as the first character in a variable.
+     */
+            String firstVarChars = "_";
             if (Character.isDigit(ch))
             {
                 while ((Character.isDigit(ch) 
@@ -1621,6 +1619,10 @@ public class Expression
             }
             else if (Character.isLetter(ch) || firstVarChars.indexOf(ch) >= 0)
             {
+                /*
+      The characters (other than letters and digits) allowed as the second or subsequent characters in a variable.
+     */
+                String varChars = "_";
                 while ((Character.isLetter(ch) || Character.isDigit(ch)
                         || varChars.indexOf(ch) >= 0 || token.length() == 0 && firstVarChars.indexOf(ch) >= 0)
                         && (pos < input.length()))

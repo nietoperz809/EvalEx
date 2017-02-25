@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="com.cedarsoftware:json-io:4.9.9" type="repository">
+    <properties maven-id="com.cedarsoftware:json-io:4.9.9" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/cedarsoftware/json-io/4.9.9/json-io-4.9.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

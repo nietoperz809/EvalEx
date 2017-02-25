@@ -4,6 +4,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.math3.complex.Complex;
 
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class MyComplex
 {
     public double imaginary = 0.0;
     public double real = 0.0;
-    public ArrayList<MyComplex> list = new ArrayList<>();
+    public final ArrayList<MyComplex> list = new ArrayList<>();
     public ValueType type;
 
     public MyComplex (List<MyComplex> l)
@@ -281,8 +282,7 @@ public class MyComplex
     public double angle ()
     {
         Complex c = new Complex(real, imaginary);
-        double d = c.getArgument();
-        return d;
+        return c.getArgument();
     }
 
     public double abs ()
@@ -300,7 +300,8 @@ public class MyComplex
 
     private String fmt (Double d)
     {
-        return d.longValue() == d ? "" + d.longValue() : "" + d;
+        DecimalFormat df = new DecimalFormat("#.############");
+        return df.format(d); //d.longValue() == d ? "" + d.longValue() : "" + d;
     }
 
     public String toStringComplex ()
@@ -309,9 +310,9 @@ public class MyComplex
         if (type == ValueType.ARRAY)
         {
             sb.append('[');
-            for (int s=0; s<list.size(); s++)
+            for (MyComplex aList : list)
             {
-                sb.append(list.get(s).toStringComplex()).append(',');
+                sb.append(aList.toStringComplex()).append(',');
             }
             sb.setLength(sb.length() - 1);
             sb.append(']');
@@ -350,9 +351,9 @@ public class MyComplex
     public static List<MyComplex> listFromRealArray (double[] d)
     {
         ArrayList<MyComplex> l = new ArrayList<>();
-        for (int s=0; s<d.length; s++)
+        for (double aD : d)
         {
-            l.add (new MyComplex(d[s]));
+            l.add(new MyComplex(aD));
         }
         return l;
     }
