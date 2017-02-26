@@ -903,7 +903,7 @@ public class Expression
                 {
                     s = "00" + s;
                 }
-                s = MathTools.reverseHex(s);
+                s = Misc.reverseHex(s);
                 return new MyComplex(new BigInteger(s, 16), BigInteger.ZERO);
             }
         });
@@ -928,7 +928,7 @@ public class Expression
             @Override
             public MyComplex eval (List<MyComplex> par)
             {
-                return MathTools.iterativeFibonacci((int)par.get(0).real);
+                return Misc.iterativeFibonacci((int)par.get(0).real);
             }
         });
 
@@ -1064,24 +1064,44 @@ public class Expression
             }
         });
         addFunction(new Function("DERIVE", -1,
-                "Make derivative of Polynom")
+                "Make derivative of polynomial")
         {
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
+                PolynomialFunction p;
                 if (parameters.get(0).isPoly())
                 {
-                    PolynomialFunction p = parameters.get(0).getPoly();
-                    return new MyComplex(p.polynomialDerivative());
+                    p = parameters.get(0).getPoly();
                 }
                 else
                 {
                     double[] d = MyComplex.getRealArray(parameters);
-                    PolynomialFunction p = new PolynomialFunction(d);
-                    return new MyComplex(p.polynomialDerivative());
+                    p = new PolynomialFunction(d);
                 }
+                return new MyComplex(p.polynomialDerivative());
             }
         });
+        addFunction(new Function("INTEGRATE", -1,
+                "Make antiderivative of polynomial. Constant is always zero")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                PolynomialFunction p;
+                if (parameters.get(0).isPoly())
+                {
+                    p = parameters.get(0).getPoly();
+                }
+                else
+                {
+                    double[] d = MyComplex.getRealArray(parameters);
+                    p = new PolynomialFunction(d);
+                }
+                return new MyComplex(Misc.antiDerive(p));
+            }
+        });
+
         addFunction(new Function("PVAL", 2,
                 "Compute value of polynom for the given argument.")
         {

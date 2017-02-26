@@ -1,9 +1,11 @@
 package com.udojava.evalex;
 
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
+
 /**
  * Created by Administrator on 1/28/2017.
  */
-public class MathTools
+public class Misc
 {
 
 //    public static BigDecimal sqrt(BigDecimal value)
@@ -104,13 +106,28 @@ public class MathTools
         return third;
     }
 
-//    public static MyComplex approxFibonacci (int n)
-//    {
-////                MyComplex Phi = sqrt5.add(MyComplex.ONE).divide(new MyComplex(2), MathContext.DECIMAL128);
-////                MyComplex phi = Phi.subtract(MyComplex.ONE);
-////                MyComplex b1 = exp.eval(Phi, par.get(0));
-////                MyComplex b2 = exp.eval(phi, par.get(0));
-////                MyComplex r = b1.subtract(b2).divide(sqrt5, MathContext.DECIMAL128);
-////                return r;
-//    }
+    public static String realReplaceAll (String s, String a, String b)
+    {
+        for (; ; )
+        {
+            String n = s.replace(a, b);
+            if (n.equals(s))
+            {
+                return n;
+            }
+            s = n;
+        }
+    }
+
+    public static PolynomialFunction antiDerive (PolynomialFunction p)
+    {
+        double[] in = p.getCoefficients();
+        double[] out = new double[in.length+1];
+        out[0] = 0.0; // constant
+        for (int s=1; s<out.length; s++)
+        {
+            out[s] = in[s-1]/s;
+        }
+        return new PolynomialFunction(out);
+    }
 }
