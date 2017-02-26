@@ -26,6 +26,7 @@
  */
 package com.udojava.evalex;
 
+import org.apache.commons.math3.analysis.integration.SimpsonIntegrator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.complex.ComplexUtils;
@@ -1063,7 +1064,7 @@ public class Expression
                 return new MyComplex(p);
             }
         });
-        addFunction(new Function("DERIVE", -1,
+        addFunction(new Function("DRVE", -1,
                 "Make derivative of polynomial")
         {
             @Override
@@ -1072,7 +1073,7 @@ public class Expression
                 PolynomialFunction p;
                 if (parameters.get(0).isPoly())
                 {
-                    p = parameters.get(0).getPoly();
+                    p = new PolynomialFunction(parameters.get(0).getRealArray());
                 }
                 else
                 {
@@ -1082,7 +1083,7 @@ public class Expression
                 return new MyComplex(p.polynomialDerivative());
             }
         });
-        addFunction(new Function("INTEGRATE", -1,
+        addFunction(new Function("ADRVE", -1,
                 "Make antiderivative of polynomial. Constant is always zero")
         {
             @Override
@@ -1091,7 +1092,7 @@ public class Expression
                 PolynomialFunction p;
                 if (parameters.get(0).isPoly())
                 {
-                    p = parameters.get(0).getPoly();
+                    p = new PolynomialFunction(parameters.get(0).getRealArray());
                 }
                 else
                 {
@@ -1110,10 +1111,30 @@ public class Expression
             {
                 if (parameters.get(0).isPoly())
                 {
-                    double v = parameters.get(0).getPoly().value(parameters.get(1).real);
+                    PolynomialFunction p = new PolynomialFunction(parameters.get(0).getRealArray());
+                    double v = p.value(parameters.get(1).real);
                     return new MyComplex(v);
                 }
-                throw new ExpressionException("first arg must be polynom");
+                throw new ExpressionException("first arg must be polynomial");
+            }
+        });
+
+        addFunction(new Function("INTGR", 3,
+                "Numerical integration")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                if (parameters.get(0).isPoly())
+                {
+                    PolynomialFunction p = new PolynomialFunction(parameters.get(0).getRealArray());
+                    double start = parameters.get(1).real;
+                    double end = parameters.get(2).real;
+                    SimpsonIntegrator si = new SimpsonIntegrator();
+                    double d = si.integrate(1000, p, start, end);
+                    return new MyComplex(d);
+                }
+                throw new ExpressionException("first arg must be polynomial");
             }
         });
 

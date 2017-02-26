@@ -2,19 +2,11 @@
   "@type":"com.udojava.evalex.Main",
   "_variables":{
     "_variables":{
-      "_":{
-        "@type":"com.udojava.evalex.MyComplex",
-        "imaginary":0.0,
-        "real":1.9000000000000008,
-        "list":[],
-        "type":{
-          "name":"REAL"
-        }
-      },
       "BUILD":{
         "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":false,
         "imaginary":0.0,
-        "real":486.0,
+        "real":506.0,
         "list":[],
         "type":{
           "name":"REAL"
@@ -22,6 +14,7 @@
       },
       "e":{
         "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":false,
         "imaginary":0.0,
         "real":2.718281828459045,
         "list":[],
@@ -31,6 +24,7 @@
       },
       "FALSE":{
         "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":false,
         "imaginary":0.0,
         "real":0.0,
         "list":[],
@@ -38,26 +32,9 @@
           "name":"REAL"
         }
       },
-      "PI":{
+      "integrate":{
         "@type":"com.udojava.evalex.MyComplex",
-        "imaginary":0.0,
-        "real":3.141592653589793,
-        "list":[],
-        "type":{
-          "name":"REAL"
-        }
-      },
-      "TRUE":{
-        "@type":"com.udojava.evalex.MyComplex",
-        "imaginary":0.0,
-        "real":1.0,
-        "list":[],
-        "type":{
-          "name":"REAL"
-        }
-      },
-      "val":{
-        "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":false,
         "imaginary":0.0,
         "real":0.0,
         "list":[],
@@ -65,15 +42,17 @@
           "name":"COMPLEX"
         }
       },
-      "vals":{
+      "lala":{
         "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":true,
         "imaginary":0.0,
         "real":0.0,
         "list":[
           {
             "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
             "imaginary":0.0,
-            "real":0.8414709848078965,
+            "real":1.0,
             "list":[],
             "type":{
               "name":"REAL"
@@ -81,17 +60,9 @@
           },
           {
             "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.5403023058681398,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
             "imaginary":0.0,
-            "real":0.8912073600614354,
+            "real":2.0,
             "list":[],
             "type":{
               "name":"REAL"
@@ -99,17 +70,9 @@
           },
           {
             "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.4535961214255773,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
             "imaginary":0.0,
-            "real":0.9320390859672264,
+            "real":3.0,
             "list":[],
             "type":{
               "name":"REAL"
@@ -117,134 +80,9 @@
           },
           {
             "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.3623577544766734,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
             "imaginary":0.0,
-            "real":0.9635581854171931,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.2674988286245871,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":0.0,
-            "real":0.9854497299884603,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.1699671429002406,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":0.0,
-            "real":0.9974949866040544,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.07073720166770246,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.9995736030415051,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":-0.02919952230128926,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.9916648104524686,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":-0.1288444942955253,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.973847630878195,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":-0.22720209469308775,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":0.9463000876874142,
-            "list":[],
-            "type":{
-              "name":"REAL"
-            }
-          },
-          {
-            "@type":"com.udojava.evalex.MyComplex",
-            "imaginary":-0.0,
-            "real":-0.3232895668635042,
+            "real":4.0,
             "list":[],
             "type":{
               "name":"REAL"
@@ -254,19 +92,140 @@
         "type":{
           "name":"ARRAY"
         }
+      },
+      "lala0":{
+        "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":true,
+        "imaginary":0.0,
+        "real":0.0,
+        "list":[
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":0.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          },
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":1.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          },
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":1.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          },
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":1.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          },
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":1.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          }
+        ],
+        "type":{
+          "name":"ARRAY"
+        }
+      },
+      "lala1":{
+        "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":true,
+        "imaginary":0.0,
+        "real":0.0,
+        "list":[
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":2.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          },
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":6.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          },
+          {
+            "@type":"com.udojava.evalex.MyComplex",
+            "isPolynomial":false,
+            "imaginary":0.0,
+            "real":12.0,
+            "list":[],
+            "type":{
+              "name":"REAL"
+            }
+          }
+        ],
+        "type":{
+          "name":"ARRAY"
+        }
+      },
+      "PI":{
+        "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":false,
+        "imaginary":0.0,
+        "real":3.141592653589793,
+        "list":[],
+        "type":{
+          "name":"REAL"
+        }
+      },
+      "TRUE":{
+        "@type":"com.udojava.evalex.MyComplex",
+        "isPolynomial":false,
+        "imaginary":0.0,
+        "real":1.0,
+        "list":[],
+        "type":{
+          "name":"REAL"
+        }
       }
     }
   },
   "_history":[
-    "sin(_)",
-    "cos(_)",
-    "prod(val)",
-    "prod(vals)",
-    "sum(vals)",
-    "3!",
-    "x20",
-    "x20 xor x30",
-    "x100"
+    "lala-poly(1,2,3,4)",
+    "lala->poly(1,2,3,4)",
+    "lala1->derive(lala)",
+    "lala0->aderive(lala)",
+    "integral(lala,10,20)",
+    "pval(lala0,20)",
+    "pval(lala0,10)",
+    "pval(lala0,20)-pval(lala0,10)"
   ],
-  "_radix":16
+  "_radix":0
 }

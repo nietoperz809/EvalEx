@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class MyComplex
 {
-    private PolynomialFunction m_poly;
+    public boolean isPolynomial = false;
     public double imaginary = 0.0;
     public double real = 0.0;
     public final ArrayList<MyComplex> list = new ArrayList<>();
@@ -28,7 +28,7 @@ public class MyComplex
 
     public MyComplex (PolynomialFunction p)
     {
-        m_poly = p;
+        isPolynomial = true;
         double[] d = p.getCoefficients();
         list.addAll(MyComplex.listFromRealArray(d));
         type = ValueType.ARRAY;
@@ -323,19 +323,14 @@ public class MyComplex
 
     public boolean isPoly()
     {
-        return m_poly != null;
-    }
-
-    public PolynomialFunction getPoly()
-    {
-        return m_poly;
+        return isPolynomial;
     }
 
     public String toStringComplex ()
     {
-        if (m_poly != null)
+        if (isPolynomial)
         {
-            return m_poly.toString();
+            return new PolynomialFunction(this.getRealArray()).toString();
         }
         StringBuilder sb = new StringBuilder();
         if (type == ValueType.ARRAY)
