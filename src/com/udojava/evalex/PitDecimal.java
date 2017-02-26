@@ -5,19 +5,19 @@ package com.udojava.evalex;
  */
 class PitDecimal extends MyComplex
 {
-    String varToken;
+    private String varToken;
 
-    public PitDecimal (double val, double img)
+    PitDecimal (double val, double img)
     {
         super(val, img);
     }
 
-    public void setVarToken (String varToken)
+    void setVarToken (String varToken)
     {
         this.varToken = varToken;
     }
 
-    public String getVarToken ()
+    String getVarToken ()
     {
         return varToken;
     }

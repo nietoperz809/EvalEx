@@ -26,11 +26,15 @@
  */
 package com.udojava.evalex;
 
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math3.complex.Complex;
+import org.apache.commons.math3.complex.ComplexUtils;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.stat.descriptive.moment.GeometricMean;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 import org.apache.commons.math3.stat.descriptive.summary.Product;
 import org.apache.commons.math3.stat.descriptive.summary.Sum;
+import org.apache.commons.math3.util.ArithmeticUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
 import java.math.BigInteger;
@@ -153,7 +157,7 @@ public class Expression
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 double r = v1.real % v2.real;
-                return new MyComplex(r, 0);
+                return new MyComplex(r);
             }
         });
         addOperator(new Operator("^", 40, false,
@@ -172,7 +176,7 @@ public class Expression
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 boolean b1 = (v1.real == 0.0 && v2.real == 0.0);
-                return new MyComplex(b1?1:0, 0);
+                return new MyComplex(b1?1:0);
             }
         });
 
@@ -183,7 +187,7 @@ public class Expression
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
                 boolean b1 = (v1.real == 0.0 && v2.real == 0.0);
-                return new MyComplex(b1?0:1, 0);
+                return new MyComplex(b1?0:1);
             }
         });
 
@@ -199,7 +203,7 @@ public class Expression
                 }
                 else
                 {
-                    return new MyComplex (v1.abs()>v2.abs()?1:0, 0);
+                    return new MyComplex (v1.abs()>v2.abs()?1:0);
                 }
             }
         });
@@ -216,7 +220,7 @@ public class Expression
                 }
                 else
                 {
-                    return new MyComplex (v1.abs()>=v2.abs()?1:0, 0);
+                    return new MyComplex (v1.abs()>=v2.abs()?1:0);
                 }
             }
         });
@@ -233,7 +237,7 @@ public class Expression
                 }
                 else
                 {
-                    return new MyComplex (v1.abs()<v2.abs()?1:0, 0);
+                    return new MyComplex (v1.abs()<v2.abs()?1:0);
                 }
             }
         });
@@ -250,7 +254,7 @@ public class Expression
                 }
                 else
                 {
-                    return new MyComplex (v1.abs()<=v2.abs()?1:0, 0);
+                    return new MyComplex (v1.abs()<=v2.abs()?1:0);
                 }
             }
         });
@@ -284,7 +288,7 @@ public class Expression
                 }
                 else
                 {
-                    return new MyComplex (v1.abs()==v2.abs()?1:0, 0);
+                    return new MyComplex (v1.abs()==v2.abs()?1:0);
                 }
             }
         });
@@ -301,7 +305,7 @@ public class Expression
                 }
                 else
                 {
-                    return new MyComplex (v1.abs()!=v2.abs()?1:0, 0);
+                    return new MyComplex (v1.abs()!=v2.abs()?1:0);
                 }
             }
         });
@@ -311,7 +315,7 @@ public class Expression
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new MyComplex((long)v1.real | (long)v2.real, 0);
+                return new MyComplex((long)v1.real | (long)v2.real);
             }
         });
         addOperator(new Operator("and", 7, false,
@@ -320,7 +324,7 @@ public class Expression
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new MyComplex((long)v1.real & (long)v2.real, 0);
+                return new MyComplex((long)v1.real & (long)v2.real);
             }
         });
         addOperator(new Operator("xor", 7, false,
@@ -329,7 +333,7 @@ public class Expression
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new MyComplex((long)v1.real ^ (long)v2.real, 0);
+                return new MyComplex((long)v1.real ^ (long)v2.real);
             }
         });
 
@@ -363,13 +367,13 @@ public class Expression
                 int c = bi.bitLength();
                 if (c == 0)
                 {
-                    return new MyComplex(1,0);
+                    return new MyComplex(1);
                 }
                 for (int s = 0; s < c; s++)
                 {
                     bi = bi.flipBit(s);
                 }
-                return new MyComplex(bi, BigInteger.ZERO);
+                return new MyComplex(bi);
             }
         });
 
@@ -379,7 +383,7 @@ public class Expression
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new MyComplex((long)v1.real << (long)v2.real, 0);
+                return new MyComplex((long)v1.real << (long)v2.real);
             }
         });
 
@@ -389,7 +393,7 @@ public class Expression
             @Override
             public MyComplex eval (MyComplex v1, MyComplex v2)
             {
-                return new MyComplex((long)v1.real >>> (long)v2.real, 0);
+                return new MyComplex((long)v1.real >>> (long)v2.real);
             }
         });
 
@@ -400,7 +404,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 boolean zero = parameters.get(0).abs() == 0;
-                return new MyComplex (zero?1:0, 0);
+                return new MyComplex (zero?1:0);
             }
         });
 
@@ -412,7 +416,7 @@ public class Expression
             {
                 double low = parameters.get(0).real;
                 double high = parameters.get(1).real;
-                return new MyComplex(low + Math.random() * (high - low), 0);
+                return new MyComplex(low + Math.random() * (high - low));
             }
         });
 
@@ -424,7 +428,7 @@ public class Expression
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
-                return new MyComplex(mers.nextDouble(), 0);
+                return new MyComplex(mers.nextDouble());
             }
         });
 
@@ -437,7 +441,7 @@ public class Expression
                 int n = (int)parameters.get(0).real;
                 int k = (int)parameters.get(1).real;
                 double d = CombinatoricsUtils.binomialCoefficientDouble(n, k);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("STIR", 2,
@@ -449,7 +453,7 @@ public class Expression
                 int n = (int)parameters.get(0).real;
                 int k = (int)parameters.get(1).real;
                 double d = CombinatoricsUtils.stirlingS2(n, k);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
 
@@ -541,7 +545,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double d = Math.toRadians(parameters.get(0).real);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("DEG", 1,
@@ -551,7 +555,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double d = Math.toDegrees(parameters.get(0).real);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("MAX", -1,
@@ -560,7 +564,7 @@ public class Expression
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
-                MyComplex save = new MyComplex (Double.MIN_VALUE, 0);
+                MyComplex save = new MyComplex (Double.MIN_VALUE);
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MAX requires at least one parameter");
@@ -650,40 +654,32 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 MyComplex p = parameters.get(0);
-                return new MyComplex(2, 0).pow(p).subtract(new MyComplex(1,0));
+                return new MyComplex(2).pow(p).subtract(new MyComplex(1));
             }
         });
 
         addFunction(new Function("GCD", 2,
                 "Find greatest common divisor of 2 values")
         {
-            private double GCD (double a, double b)
-            {
-                if (b  == 0.0)
-                {
-                    return a;
-                }
-                return GCD(b, a % b );
-            }
-
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double a = parameters.get(0).real;
                 double b = parameters.get(1).real;
-                return new MyComplex(GCD(a,b), 0);
+                long r = ArithmeticUtils.gcd((long)a, (long)b);
+                return new MyComplex(r);
             }
         });
         addFunction(new Function("LCM", 2,
                 "Find least common multiple of 2 values")
         {
-            private final Function gcd = (Function) functions.get("GCD");
-
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
-                return parameters.get(0).multiply(parameters.get(1))
-                        .divide(gcd.eval(parameters));
+                double a = parameters.get(0).real;
+                double b = parameters.get(1).real;
+                long r = ArithmeticUtils.lcm((long)a, (long)b);
+                return new MyComplex(r);
             }
         });
         addFunction(new Function("AMEAN", -1,
@@ -773,7 +769,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double b = parameters.get(0).angle();
-                return new MyComplex(b, 0);
+                return new MyComplex(b);
             }
         });
 
@@ -805,7 +801,8 @@ public class Expression
             {
                 double angle = parameters.get(0).real;
                 double len = parameters.get(1).real;
-                return new MyComplex(len*Math.cos(angle), len*Math.sin(angle));
+                Complex c = ComplexUtils.polar2Complex(len, angle);
+                return new MyComplex(c);
             }
         });
 
@@ -836,7 +833,7 @@ public class Expression
                 {
                     throw new ExpressionException("MEAN requires at least one parameter");
                 }
-                MyComplex res = new MyComplex(0,0);
+                MyComplex res = new MyComplex(0);
                 int num = 0;
                 for (MyComplex parameter : parameters)
                 {
@@ -863,7 +860,7 @@ public class Expression
                 {
                     arr[s] = parameters.get(s).real;
                 }
-                return new MyComplex(variance(arr), 0);
+                return new MyComplex(variance(arr));
             }
         });
 
@@ -873,7 +870,7 @@ public class Expression
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
-                return new MyComplex(nextPrime((int)parameters.get(0).real), 0);
+                return new MyComplex(nextPrime((int)parameters.get(0).real));
             }
         });
 
@@ -919,7 +916,7 @@ public class Expression
             {
                 double a = par.get(0).real;
                 double b = par.get(1).real;
-                return new MyComplex(Math.sqrt(a * a + b * b), 0);
+                return new MyComplex(Math.sqrt(a * a + b * b));
             }
         });
 
@@ -943,7 +940,7 @@ public class Expression
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
-                MyComplex save = new MyComplex (Double.MAX_VALUE, 0);
+                MyComplex save = new MyComplex (Double.MAX_VALUE);
                 if (parameters.size() == 0)
                 {
                     throw new ExpressionException("MAX requires at least one parameter");
@@ -979,7 +976,7 @@ public class Expression
             @Override
             public MyComplex eval (List<MyComplex> parameters)
             {
-                return new MyComplex(parameters.get(0).abs(), 0);
+                return new MyComplex(parameters.get(0).abs());
             }
         });
         addFunction(new Function("LN", 1,
@@ -989,7 +986,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double d = Math.log(parameters.get(0).real);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("LOG", 1,
@@ -999,7 +996,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double d = Math.log10(parameters.get(0).real);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("FLOOR", 1,
@@ -1009,7 +1006,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double d = Math.floor(parameters.get(0).real);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("CEIL", 1,
@@ -1019,7 +1016,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 double d = Math.ceil(parameters.get(0).real);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("ROU", 1,
@@ -1029,7 +1026,7 @@ public class Expression
             public MyComplex eval (List<MyComplex> parameters)
             {
                 int d = (int)(parameters.get(0).real+0.5);
-                return new MyComplex(d, 0);
+                return new MyComplex(d);
             }
         });
         addFunction(new Function("SQRT", 1,
@@ -1055,6 +1052,51 @@ public class Expression
                 return new MyComplex(parameters);
             }
         });
+        addFunction(new Function("POLY", -1,
+                "Treat array as Polynom")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                double[] d = MyComplex.getRealArray(parameters);
+                PolynomialFunction p = new PolynomialFunction(d);
+                return new MyComplex(p);
+            }
+        });
+        addFunction(new Function("DERIVE", -1,
+                "Make derivative of Polynom")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                if (parameters.get(0).isPoly())
+                {
+                    PolynomialFunction p = parameters.get(0).getPoly();
+                    return new MyComplex(p.polynomialDerivative());
+                }
+                else
+                {
+                    double[] d = MyComplex.getRealArray(parameters);
+                    PolynomialFunction p = new PolynomialFunction(d);
+                    return new MyComplex(p.polynomialDerivative());
+                }
+            }
+        });
+        addFunction(new Function("PVAL", 2,
+                "Compute value of polynom for the given argument.")
+        {
+            @Override
+            public MyComplex eval (List<MyComplex> parameters)
+            {
+                if (parameters.get(0).isPoly())
+                {
+                    double v = parameters.get(0).getPoly().value(parameters.get(1).real);
+                    return new MyComplex(v);
+                }
+                throw new ExpressionException("first arg must be polynom");
+            }
+        });
+
     }
 
     /**

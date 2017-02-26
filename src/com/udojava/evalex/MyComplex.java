@@ -1,6 +1,7 @@
 package com.udojava.evalex;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math3.complex.Complex;
 
 import java.math.BigInteger;
@@ -13,6 +14,7 @@ import java.util.List;
  */
 public class MyComplex
 {
+    private PolynomialFunction m_poly;
     public double imaginary = 0.0;
     public double real = 0.0;
     public final ArrayList<MyComplex> list = new ArrayList<>();
@@ -22,6 +24,21 @@ public class MyComplex
     {
         list.addAll(l);
         type = ValueType.ARRAY;
+    }
+
+    public MyComplex (PolynomialFunction p)
+    {
+        m_poly = p;
+        double[] d = p.getCoefficients();
+        list.addAll(MyComplex.listFromRealArray(d));
+        type = ValueType.ARRAY;
+    }
+
+    public MyComplex (Complex c)
+    {
+        real = c.getReal();
+        imaginary = c.getImaginary();
+        type = ValueType.COMPLEX;
     }
 
     public boolean equals (Object o)
@@ -101,21 +118,21 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.conjugate();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        return new MyComplex(c);
     }
 
     public MyComplex invert ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.reciprocal();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        return new MyComplex(c);
     }
 
     public MyComplex cos ()
     {
         Complex c = new Complex(real, imaginary);
         c = c.cos();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -124,7 +141,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.sin();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -133,7 +150,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.tan();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -142,7 +159,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.acos();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -151,7 +168,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.sin();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -160,7 +177,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.acos();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -169,7 +186,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.sinh();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -178,7 +195,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.cosh();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -187,7 +204,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.tanh();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -196,7 +213,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.sqrt();
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         m.type = type;
         return m;
     }
@@ -206,7 +223,7 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.add(d);
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         if (type == ValueType.REAL && n.type == ValueType.REAL)
             m.type = ValueType.REAL;
         return m;
@@ -233,7 +250,7 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.subtract(d);
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         if (type == ValueType.REAL && n.type == ValueType.REAL)
             m.type = ValueType.REAL;
         return m;
@@ -245,7 +262,7 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.multiply(d);
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         if (type == ValueType.REAL && n.type == ValueType.REAL)
             m.type = ValueType.REAL;
         return m;
@@ -262,7 +279,7 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.divide(d);
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         if (type == ValueType.REAL && n.type == ValueType.REAL)
             m.type = ValueType.REAL;
         return m;
@@ -273,7 +290,7 @@ public class MyComplex
         Complex c = new Complex(real, imaginary);
         Complex d = new Complex(n.real, n.imaginary);
         c = c.pow(d);
-        MyComplex m = new MyComplex(c.getReal(), c.getImaginary());
+        MyComplex m = new MyComplex(c);
         if (type == ValueType.REAL && n.type == ValueType.REAL)
             m.type = ValueType.REAL;
         return m;
@@ -295,7 +312,7 @@ public class MyComplex
     {
         Complex c = new Complex(real, imaginary);
         c = c.negate();
-        return new MyComplex(c.getReal(), c.getImaginary());
+        return new MyComplex(c);
     }
 
     private String fmt (Double d)
@@ -304,8 +321,22 @@ public class MyComplex
         return df.format(d); //d.longValue() == d ? "" + d.longValue() : "" + d;
     }
 
+    public boolean isPoly()
+    {
+        return m_poly != null;
+    }
+
+    public PolynomialFunction getPoly()
+    {
+        return m_poly;
+    }
+
     public String toStringComplex ()
     {
+        if (m_poly != null)
+        {
+            return m_poly.toString();
+        }
         StringBuilder sb = new StringBuilder();
         if (type == ValueType.ARRAY)
         {
@@ -364,8 +395,6 @@ public class MyComplex
             throw new ExpressionException("must be array");
         return getRealArray(list);
     }
-
-
 
     public double norm ()
     {
